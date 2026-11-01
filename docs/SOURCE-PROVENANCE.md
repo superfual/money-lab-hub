@@ -7,3 +7,5 @@ The README is rewritten for current behavior, replacing accumulated historical r
 Tests recorded for the source baseline: 99 passing checks. These are automated checks, not an independent security audit or user-adoption figures. Friend playtesting is beginning. Offline balance simulations in the documents are synthetic and must not be presented as real player analytics.
 
 AI-assisted implementation supported the project. Existing TapeOut protocol components and npm dependencies remain third-party work. This snapshot does not transfer or expose player records. No open-source license for original project material has been selected yet.
+
+Prototype 24 analytics update: deployed Sites source `2806e189ccca0d6faea2743082410fb3398546f0`, 1 November 2026. Adds aggregate analytics and owner-authorized chat reporting. 109 automated checks passed. No runtime player data is included.

@@ -1,3 +1,4 @@
+import {safelyMeasure,recordMetric,activity,stageMetrics,testCohort} from './metrics.mjs';
 import {walletIdentity} from './identity.mjs';
 import {createHub,unlocked} from '../dist/hub.mjs';
 import {createDuel,startDuel,duelAct,resignDuel} from '../dist/duel-core.mjs';
@@ -26,7 +27,7 @@ export async function handleOnline(request,env,services={}){try{
   const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',code=Array.from(crypto.getRandomValues(new Uint8Array(8)),n=>alphabet[n%32]).join('');
   const room={host:id,capacity:body.capacity,level:body.level,d:createDuel(),members:[{id,name:cleanName(body.name),ready:false}],seen:[],proof:null};room.d.players=[];
   const op=crypto.randomUUID();const result=await db.batch([db.prepare('INSERT INTO moneylab_rooms (code,revision,operation_id,state,updated_at) SELECT ?,0,?,?,? WHERE EXISTS (SELECT 1 FROM moneylab_profiles WHERE id=? AND room_code IS NULL AND hub=?)').bind(code,op,JSON.stringify(room),Date.now(),id,profile.hub),db.prepare('UPDATE moneylab_profiles SET room_code=? WHERE id=? AND room_code IS NULL AND EXISTS (SELECT 1 FROM moneylab_rooms WHERE code=? AND operation_id=?)').bind(code,id,code,op)]);
-  if(!result[0].meta.changes)fail('ROOM_CONFLICT',409);return json(await view(db,code,id));
+  if(!result[0].meta.changes)fail('ROOM_CONFLICT',409);await safelyMeasure(()=>recordMetric(db,{actor:id,mode:'online',level:body.level,cohort:testCohort(request),metric:'room_created',key:code}));return json(await view(db,code,id));
  }
  const code=(body.code||url.searchParams.get('code')||'').toUpperCase().trim();if(!/^[A-Z2-9]{8}$/.test(code))fail('INVALID_ROOM_CODE');
  const record=await db.prepare('SELECT revision,state FROM moneylab_rooms WHERE code=?').bind(code).first();if(!record)fail('ROOM_NOT_FOUND',404);
@@ -36,7 +37,7 @@ export async function handleOnline(request,env,services={}){try{
  if(typeof body.requestId!=='string'||body.requestId.length>80)fail('REQUEST_ID_REQUIRED');
  if(room.seen.some(x=>x.id===id&&x.key===body.requestId)){if(seat<0)return json({left:true});return json(await view(db,code,id));}
  if(path!=='/join'&&body.revision!==record.revision)fail('ROOM_CHANGED_REFRESH',409);
- let changedProfiles=[],contribution=null;
+ let changedProfiles=[],contribution=null;const wasFinished=room.d.players[seat]?.game?.phase==='finished';
  if(path==='/join'){
   if(seat>=0)return json(await view(db,code,id));if(profile.room_code)fail('ALREADY_IN_ROOM',409);if(JSON.parse(profile.hub).active)fail('FINISH_SOLO_FIRST',409);if(room.d.active||room.d.done||room.members.length>=room.capacity)fail('ROOM_CLOSED');
   const hub=JSON.parse(profile.hub);if(!unlocked(hub,room.level)||hub.balance<matchStake(room.level))fail('LEVEL_LOCKED_OR_INSUFFICIENT_HUB');
@@ -66,7 +67,11 @@ export async function handleOnline(request,env,services={}){try{
  const statements=[db.prepare('UPDATE moneylab_rooms SET state=?,revision=?,operation_id=?,updated_at=? WHERE code=? AND revision=? AND (?=0 OR EXISTS (SELECT 1 FROM moneylab_profiles WHERE id=? AND room_code IS NULL AND hub=?))').bind(JSON.stringify(room),nextRevision,op,Date.now(),code,record.revision,path==='/join'?1:0,id,profile.hub)];
  for(const p of changedProfiles)statements.push(db.prepare('UPDATE moneylab_profiles SET hub=?,room_code=? WHERE id=? AND EXISTS (SELECT 1 FROM moneylab_rooms WHERE code=? AND operation_id=?)').bind(JSON.stringify(p.hub),p.room,p.id,code,op));
  if(contribution!==null)statements.push(db.prepare('INSERT OR IGNORE INTO moneylab_settlements (room_code,round,contribution) SELECT ?,?,? WHERE EXISTS (SELECT 1 FROM moneylab_rooms WHERE code=? AND operation_id=?)').bind(code,room.d.round,contribution,code,op));
- const results=await db.batch(statements);if(!results[0].meta.changes)fail('ROOM_CHANGED_REFRESH',409);return json(path==='/leave'?{left:true}:await view(db,code,id));
+ const results=await db.batch(statements);if(!results[0].meta.changes)fail('ROOM_CHANGED_REFRESH',409);
+ await safelyMeasure(async()=>{const cohort=testCohort(request),base={actor:id,mode:'online',level:room.level,cohort};
+ if(path==='/start'){await recordMetric(db,{...base,metric:'match_started',key:code+'|'+room.d.round});for(let i=0;i<room.members.length;i++){const actor=room.members[i].id;await recordMetric(db,{...base,actor,metric:'stage_started',key:code+'|'+room.d.players[i].game.runId});await activity(db,actor,'online',cohort);}}
+ if(path==='/act'){await activity(db,id,'online',cohort);const game=room.d.players[seat].game;if(!wasFinished&&game.phase==='finished')await stageMetrics(db,{actor:id,mode:'online',game:{...game,runId:code+'|'+game.runId},cohort,abandoned:body.action==='surrender'});if(contribution!==null)await recordMetric(db,{...base,metric:'match_settled',key:code+'|'+room.d.round});}
+ });return json(path==='/leave'?{left:true}:await view(db,code,id));
  }catch(error){services.onError?.(error);if(!error.status)console.error('Money Lab online:',error.message);return json({error:error.status?error.message:'ONLINE_REQUEST_FAILED'},error.status||503);}}
 function cleanName(name){return typeof name==='string'&&name.trim()?name.trim().slice(0,24):'Player';}
 async function view(db,code,id){const r=await db.prepare('SELECT revision,state FROM moneylab_rooms WHERE code=?').bind(code).first(),room=JSON.parse(r.state),seat=room.members.findIndex(m=>m.id===id);if(seat<0)fail('NOT_A_MEMBER',403);

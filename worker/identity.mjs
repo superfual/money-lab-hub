@@ -1,3 +1,4 @@
+import {safelyMeasure,recordMetric,activity,testCohort} from './metrics.mjs';
 import {verifyMessage,getAddress} from 'ethers';
 import {createHub} from '../dist/hub.mjs';
 const encoder=new TextEncoder();
@@ -31,7 +32,7 @@ export async function handleAuth(request,env){try{
    db.prepare(`INSERT OR IGNORE INTO moneylab_profiles (id,hub) SELECT ?,? WHERE ${cond}`).bind(id,JSON.stringify(hub),body.nonce,digest),
    db.prepare(`INSERT OR IGNORE INTO moneylab_solo (id) SELECT ? WHERE ${cond}`).bind(id,body.nonce,digest),
    db.prepare(`INSERT INTO moneylab_wallet_sessions (token_hash,account_id,expires) SELECT ?,?,? WHERE ${cond}`).bind(digest,id,now+604800000,body.nonce,digest)
-  ]);if(!results[0].meta.changes)fail('CHALLENGE_EXPIRED',401);return json({account:{address:c.address},reactivated:!!old?.deleted},200,{'Set-Cookie':cookie(secret)});
+  ]);if(!results[0].meta.changes)fail('CHALLENGE_EXPIRED',401);await safelyMeasure(async()=>{const base={actor:id,mode:'account',cohort:testCohort(request)};await recordMetric(db,{...base,metric:'wallet_login',key:digest});if(!old)await recordMetric(db,{...base,metric:'wallet_registered',key:id});await activity(db,id,'account',base.cohort);});return json({account:{address:c.address},reactivated:!!old?.deleted},200,{'Set-Cookie':cookie(secret)});
  }
  if(path==='logout'){const raw=request.headers.get('Cookie')?.match(/__Host-ml_session=([a-f0-9]{64})/)?.[1];if(raw)await db.prepare('DELETE FROM moneylab_wallet_sessions WHERE token_hash=?').bind(await hash(raw)).run();return json({ok:true},200,{'Set-Cookie':cookie('',0)});}
  fail('NOT_FOUND',404);

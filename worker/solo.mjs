@@ -1,3 +1,4 @@
+import {safelyMeasure,recordMetric,activity,stageMetrics,forgetMetrics,refreshSnapshot,testCohort} from './metrics.mjs';
 import {walletIdentity,token} from './identity.mjs';
 import {createHub,beginRun,settleRun,abandonRun,unlocked} from '../dist/hub.mjs';
 import {createGame,prepareMove,chooseMove,resolve,manage} from '../dist/engine.mjs';
@@ -20,7 +21,7 @@ export async function handleSolo(request,env,services={}){try{
   if(body.confirm!=='DELETE')fail('CONFIRM_DELETE_REQUIRED');if(hub.active)fail('FINISH_SOLO_FIRST',409);
   const rooms=await db.prepare('SELECT code,state FROM moneylab_rooms WHERE instr(state,?)>0').bind(account.id).all();const marker=token(),guard='EXISTS (SELECT 1 FROM moneylab_profiles WHERE id=? AND room_code=?)',statements=[db.prepare('UPDATE moneylab_profiles SET room_code=? WHERE id=? AND room_code IS NULL AND hub=?').bind(marker,account.id,profile.hub)];
   for(const r of rooms.results){const room=JSON.parse(r.state);if(!scrubRoom(room,account.id,true))continue;statements.push(db.prepare(`UPDATE moneylab_rooms SET state=?,revision=revision+1 WHERE code=? AND state=? AND ${guard}`).bind(JSON.stringify(room),r.code,r.state,account.id,marker));}
-  statements.push(db.prepare(`DELETE FROM moneylab_wallet_sessions WHERE account_id=? AND ${guard}`).bind(account.id,account.id,marker),db.prepare(`DELETE FROM moneylab_wallet_challenges WHERE address=? AND ${guard}`).bind(account.address,account.id,marker),db.prepare(`DELETE FROM moneylab_solo WHERE id=? AND ${guard}`).bind(account.id,account.id,marker),db.prepare(`UPDATE moneylab_wallet_accounts SET address=NULL,deleted=1 WHERE id=? AND ${guard}`).bind(account.id,account.id,marker),db.prepare('DELETE FROM moneylab_profiles WHERE id=? AND room_code=?').bind(account.id,marker));const deleted=await db.batch(statements);if(!deleted[0].meta.changes)fail('PROGRESS_CHANGED_REFRESH',409);return json({deleted:true});
+  statements.push(db.prepare(`DELETE FROM moneylab_wallet_sessions WHERE account_id=? AND ${guard}`).bind(account.id,account.id,marker),db.prepare(`DELETE FROM moneylab_wallet_challenges WHERE address=? AND ${guard}`).bind(account.address,account.id,marker),db.prepare(`DELETE FROM moneylab_solo WHERE id=? AND ${guard}`).bind(account.id,account.id,marker),db.prepare(`UPDATE moneylab_wallet_accounts SET address=NULL,deleted=1 WHERE id=? AND ${guard}`).bind(account.id,account.id,marker),db.prepare('DELETE FROM moneylab_profiles WHERE id=? AND room_code=?').bind(account.id,marker));const deleted=await db.batch(statements);if(!deleted[0].meta.changes)fail('PROGRESS_CHANGED_REFRESH',409);await safelyMeasure(async()=>{await forgetMetrics(db,account.id);await refreshSnapshot(db);});return json({deleted:true});
  }
  let next=structuredClone(state),h=structuredClone(hub),receipt=null;
  if(path==='clear-history'){
@@ -43,7 +44,14 @@ export async function handleSolo(request,env,services={}){try{
   db.prepare('UPDATE moneylab_profiles SET hub=? WHERE id=? AND EXISTS (SELECT 1 FROM moneylab_solo WHERE id=? AND operation_id=?)').bind(JSON.stringify(h),account.id,account.id,op)
  ];
  if(path==='clear-history'){const rooms=await db.prepare('SELECT code,state FROM moneylab_rooms WHERE instr(state,?)>0').bind(account.id).all();for(const r of rooms.results){const room=JSON.parse(r.state);if(!scrubRoom(room,account.id,false))continue;statements.push(db.prepare('UPDATE moneylab_rooms SET state=?,revision=revision+1 WHERE code=? AND state=? AND EXISTS (SELECT 1 FROM moneylab_solo WHERE id=? AND operation_id=?)').bind(JSON.stringify(room),r.code,r.state,account.id,op));}}
- const results=await db.batch(statements);if(!results[0].meta.changes)fail('PROGRESS_CHANGED_REFRESH',409);return json({game:next,hub:h,revision:row.revision+1,roomCode:null,address:account.address,receipt});
+ const results=await db.batch(statements);if(!results[0].meta.changes)fail('PROGRESS_CHANGED_REFRESH',409);
+ await safelyMeasure(async()=>{const cohort=testCohort(request),base={actor:account.id,mode:'wallet_solo',level:next.difficulty,cohort};
+ if(path==='clear-history'){await forgetMetrics(db,account.id);return;}
+ await activity(db,account.id,'wallet_solo',cohort);
+ if(body.action==='start')await recordMetric(db,{...base,metric:'stage_started',key:next.runId});
+ if(body.action==='reset'&&hub.active)await stageMetrics(db,{actor:account.id,mode:'wallet_solo',game:state,cohort,abandoned:true});
+ if(next.phase==='finished'&&state.phase!=='finished')await stageMetrics(db,{actor:account.id,mode:'wallet_solo',game:next,cohort});
+ });return json({game:next,hub:h,revision:row.revision+1,roomCode:null,address:account.address,receipt});
  }catch(e){services.onError?.(e);if(!e.status)console.error('Money Lab progress:',e.message);return json({error:e.status?e.message:'PROGRESS_UNAVAILABLE'},e.status||503);}}
 
 function scrubRoom(room,id,remove){let changed=false;const member=room.members.find(m=>m.id===id);if(remove&&member){member.name='Deleted player';changed=true;}const seat=room.playerIds?.indexOf(id)??room.members.findIndex(m=>m.id===id);if(seat>=0&&room.d.players[seat]){const p=room.d.players[seat];if(remove){p.name='Deleted player';p.game=null;p.hub={balance:p.hub.balance};}else{if(p.game){p.game.history=[];p.game.last=null;p.game.pending=null;}if(p.hub){p.hub.journey=[];p.hub.ledger=[];}}p.receipt=null;changed=true;}return changed;}

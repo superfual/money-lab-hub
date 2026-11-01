@@ -6,7 +6,7 @@ A Vietnamese–English financial learning board game: navigate twelve simulated 
 
 [Play Money Lab](https://fual-money-lab-x.phamphuanloc.chatgpt.site/) · [Online Duet / Group](https://fual-money-lab-x.phamphuanloc.chatgpt.site/online.html) · [Rules](https://fual-money-lab-x.phamphuanloc.chatgpt.site/rules.html)
 
-Prototype 24 · Built by Fual Nguyen with AI-assisted development for X Layer TapeOut Accelerate.
+Prototype 25 · Built by Fual Nguyen with AI-assisted development for X Layer TapeOut Accelerate.
 
 > All money, asset scenarios and HUB balances are fictional. HUB is nontransferable and nonredeemable. No live HUB token, token sale, real-value wagering or investment return is offered. This educational prototype is not investment advice or an audited financial service.
 
@@ -103,3 +103,7 @@ This is an independent educational project. It is not an official product or end
 ## Aggregate analytics
 
 Owner-authorized chat reports now cover daily stage attempts, outcomes, scores, difficulty and repeat play. Browser-reported guest metrics and server-confirmed outcomes remain separate; tagged QA is excluded by default. No public statistics-read endpoint or player database is published. See [analytics guide](docs/analytics-guide.md) for retrieval, consent and coverage limitations. Dated reporting begins with this update; legacy storage totals include test activity.
+
+## Isolated Testnet Lab
+
+An optional X Layer Testnet (1952) experiment adds nontransferable tHUB points, onchain balances/level unlocks, and server-attested stage settlements. Existing game HUB and mainnet TapeOut reads remain separate. The web implementation is ready, but public-chain deployment still requires the owner wallet and exact-bytecode activation. No real-value token or market is launched. See [deployment and trust guide](docs/testnet-lab.md). 118 automated checks pass, including local EVM contract tests; this is not an independent audit.

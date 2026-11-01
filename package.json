@@ -5,12 +5,15 @@
   "scripts": {
     "dev": "node --use-env-proxy scripts/preview-online.mjs",
     "build": "node scripts/build-online.mjs",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "contracts:build": "node scripts/build-contracts.mjs"
   },
   "dependencies": {
     "ethers": "6.15.0"
   },
   "devDependencies": {
-    "esbuild": "0.25.12"
+    "esbuild": "0.25.12",
+    "solc": "0.8.30",
+    "ganache": "7.9.2"
   }
 }

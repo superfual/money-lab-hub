@@ -9,3 +9,5 @@ Tests recorded for the source baseline: 99 passing checks. These are automated c
 AI-assisted implementation supported the project. Existing TapeOut protocol components and npm dependencies remain third-party work. This snapshot does not transfer or expose player records. No open-source license for original project material has been selected yet.
 
 Prototype 24 analytics update: deployed Sites source `2806e189ccca0d6faea2743082410fb3398546f0`, 1 November 2026. Adds aggregate analytics and owner-authorized chat reporting. 109 automated checks passed. No runtime player data is included.
+
+Prototype 25: Sites source `1e9ded4231966d0f00ea190945428f99e5ef15ed`, 2 November 2026 (Vietnam time). Adds an isolated testnet lab, contract source/artifact, schema and checks. Public testnet deployment remains pending the owner wallet transaction. No runtime keys or player records are exported.

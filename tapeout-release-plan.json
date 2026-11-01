@@ -1,6 +1,6 @@
 {
   "project": "Money Lab",
-  "release": "board-v24-chat-analytics",
+  "release": "board-v25-isolated-testnet-lab",
   "network": {
     "name": "X Layer",
     "chainId": 196,
@@ -64,8 +64,7 @@
   },
   "nextActions": [
     "Collect user feedback on the bilingual board",
-    "Prepare campaign submission, product explanation and demo video",
-    "Keep transactionHash null until the actual tapeout receipt is retrieved; do not substitute a contract address"
+    "Prepare campaign submission, product explanation and demo video"
   ],
   "walletAccounts": {
     "login": "EIP-4361 message / EOA signature verified server-side",
@@ -82,5 +81,12 @@
     "newDataOnly": true,
     "normalCohort": "unclassified, not verified humans",
     "publicReadEndpoint": false
+  },
+  "testnetLab": {
+    "chainId": 1952,
+    "status": "AWAITING_OWNER_WALLET_DEPLOYMENT",
+    "contractAddress": null,
+    "token": "tHUB nontransferable test points; no monetary value",
+    "guide": "docs/testnet-lab.md"
   }
 }

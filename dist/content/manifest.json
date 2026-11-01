@@ -1,0 +1,32 @@
+{
+  "schema": "money-lab.content-manifest.v3",
+  "release": "scenario-01-bilingual-circuit-v1",
+  "files": [
+    {
+      "language": "vi",
+      "role": "scenario",
+      "path": "/content/scenario-01.vi.json",
+      "contentType": "application/json",
+      "bytes": 1650,
+      "sha256": "9fea5f7fc5edb0a520495fa3637730a60b201c948cba7eec31a0d8d542104f57"
+    },
+    {
+      "language": "en",
+      "role": "scenario",
+      "path": "/content/scenario-01.en.json",
+      "contentType": "application/json",
+      "bytes": 1568,
+      "sha256": "1ae53944220f5ee7b00a11c0be30f825e6f7957463c683ba7f8b72fc72c1eb86"
+    },
+    {
+      "language": "neutral",
+      "role": "circuit-spec",
+      "path": "/content/capital-survival-gate.json",
+      "contentType": "application/json",
+      "bytes": 1879,
+      "sha256": "400add309a31180e59f9829188485240f025c7ea09b0e6f57e84914100a56971"
+    }
+  ],
+  "verification": "SHA-256 of the exact UTF-8 file bytes",
+  "tapeOutPublicationStatus": "ready_for_tapeout"
+}

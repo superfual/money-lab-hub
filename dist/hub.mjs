@@ -1,0 +1,18 @@
+// HUB is fictional device-local currency, never a transferable blockchain token.
+import {LEVELS} from './levels.mjs';
+import {questionPool} from './events.mjs';
+import {score} from './engine.mjs';
+export function createHub(){return {version:2,balance:80,earned:0,lost:0,runs:0,wins:{easy:0,medium:0,hard:0},bests:{easy:0,medium:0,hard:0},claimed:{easy:[],medium:[],hard:[]},active:null,season:1,journey:[],ledger:[{kind:'welcome',amount:80,level:null}]};}
+export function validHub(h){return !!h&&[1,2].includes(h.version)&&['balance','earned','lost','runs'].every(k=>Number.isSafeInteger(h[k])&&h[k]>=0)&&Object.keys(LEVELS).every(k=>Number.isInteger(h.bests?.[k])&&h.bests[k]>=0&&h.bests[k]<=100&&Array.isArray(h.claimed?.[k]))&&Array.isArray(h.ledger)&&(h.active===null||typeof h.active?.id==='string'&&Object.hasOwn(LEVELS,h.active.level)&&['challenge','practice'].includes(h.active.mode)&&Number.isSafeInteger(h.active.bond)&&h.active.bond>=0);}
+function record(h,event){h.ledger.unshift({...event,at:new Date().toISOString()});h.ledger=h.ledger.slice(0,50);}
+export function restoreHub(old){if(!validHub(old))return null;const h=structuredClone(old);if(h.version===1){const before=h.balance;h.balance=Math.max(0,h.balance-220);h.version=2;h.season=1;h.wins={easy:Number(h.bests.easy>=LEVELS.easy.target),medium:Number(h.bests.medium>=LEVELS.medium.target),hard:Number(h.bests.hard>=LEVELS.hard.target)};h.journey=[];record(h,{kind:'rebase',amount:h.balance-before,level:null});}h.wins??={easy:0,medium:0,hard:0};h.journey??=[];h.season??=1;return h;}
+export const unlocked=(h,level)=>level==='easy'||level==='medium'&&h.wins.easy>0||level==='hard'&&h.wins.medium>0;
+export function beginRun(h,s,id,mode='challenge',competition=false){if(h.active||s.started||!Object.hasOwn(LEVELS,s.difficulty)||!['challenge','practice'].includes(mode)||typeof id!=='string'||!id)return false;
+ if(mode==='practice'&&s.difficulty!=='easy'||mode==='challenge'&&!unlocked(h,s.difficulty))return false;
+ const bond=mode==='challenge'&&!competition?LEVELS[s.difficulty].bond:0;if(h.balance<bond)return false;h.questionMemory??={};if(s.month===0){const memory=h.questionMemory[s.difficulty]||[];s.usedQuestions=questionPool(s).some(q=>!memory.includes(q.id))?[...memory]:[];}h.balance-=bond;h.active={id,level:s.difficulty,mode,bond};s.runId=id;s.labMode=mode;s.labResult=null;s.started=true;record(h,{kind:mode==='practice'?'practice':'lock',amount:-bond,level:s.difficulty});return true;}
+export function settleRun(h,s){if(s.phase!=='finished'||!h.active||h.active.id!==s.runId||h.active.level!==s.difficulty)return null;
+ const a=h.active,l=LEVELS[a.level],points=score(s).total,survived=s.month===12&&s.shortfall===0,won=a.mode==='challenge'&&survived&&points>=l.target;
+ const refund=won?a.bond:0,loss=a.bond-refund,reward=won?l.rewardBase+Math.floor((points-l.target)/5)*l.rewardStep:0;
+ h.questionMemory??={};h.questionMemory[s.difficulty]=[...new Set(s.usedQuestions)];h.balance+=refund+reward;h.earned+=reward;h.lost+=loss;h.runs++;if(won)h.wins[a.level]++;h.bests[a.level]=Math.max(h.bests[a.level],points);h.active=null;
+ const result={mode:a.mode,level:a.level,points,survived,won,bond:a.bond,refund,loss,reward,milestones:[],net:reward-loss};s.labResult=result;h.journey.unshift({...result,runId:s.runId,stage:h.runs});h.journey=h.journey.slice(0,50);record(h,{kind:'settle',amount:refund+reward,level:a.level,loss,reward,points});return result;}
+export function abandonRun(h,s){if(!h.active||h.active.id!==s.runId)return false;const a=h.active;h.questionMemory??={};h.questionMemory[s.difficulty]=[...new Set(s.usedQuestions)];h.lost+=a.bond;record(h,{kind:'abandon',amount:0,loss:a.bond,level:a.level});h.active=null;return true;}

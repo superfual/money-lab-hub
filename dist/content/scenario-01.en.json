@@ -1,0 +1,63 @@
+{
+  "schema": "money-lab.scenario.v1",
+  "contentVersion": "1.0.0",
+  "project": "Money Lab",
+  "scenarioId": "emergency-fund-01",
+  "title": "Emergency fund",
+  "language": "en",
+  "currency": "USD",
+  "initialCapital": 1000,
+  "prompt": "You have $1,000 available. Choose a plan for the coming month.",
+  "choices": [
+    {
+      "id": "A",
+      "label": "Invest everything",
+      "investment": 1000,
+      "cashReserve": 0
+    },
+    {
+      "id": "B",
+      "label": "Keep some cash",
+      "investment": 700,
+      "cashReserve": 300
+    },
+    {
+      "id": "C",
+      "label": "Prioritize reserves",
+      "investment": 400,
+      "cashReserve": 600
+    }
+  ],
+  "events": [
+    {
+      "id": "market-shock",
+      "type": "investment_return",
+      "rate": -0.2,
+      "description": "Your investment falls by 20%."
+    },
+    {
+      "id": "vehicle-repair",
+      "type": "unexpected_expense",
+      "amount": 200,
+      "description": "You need $200 for a vehicle repair."
+    }
+  ],
+  "calculationRules": {
+    "eventOrder": [
+      "market-shock",
+      "vehicle-repair"
+    ],
+    "payExpenseFromCashFirst": true,
+    "sellInvestmentForCashShortfall": true,
+    "fees": 0,
+    "taxes": 0
+  },
+  "learningGoal": "Understand how an emergency fund can reduce the need to sell assets during a market downturn.",
+  "disclaimer": "This is a hypothetical educational scenario, not investment advice.",
+  "tapeOut": {
+    "targetChain": "X Layer",
+    "chainId": 196,
+    "intendedPath": "/content/scenario-01.en.json",
+    "publicationStatus": "pending"
+  }
+}

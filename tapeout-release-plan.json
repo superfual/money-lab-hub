@@ -1,0 +1,81 @@
+{
+  "project": "Money Lab",
+  "release": "board-v23-wallet-accounts-and-cloud-progress",
+  "network": {
+    "name": "X Layer",
+    "chainId": 196,
+    "gasToken": "OKB"
+  },
+  "status": "BOARD_INTEGRATED_TAPEOUT_MAINNET_ETH_CALL",
+  "walletAddress": "0x1839231f7fc0d55a3ec58736574aca13f711326d",
+  "containerAddress": null,
+  "circuitId": 48,
+  "tapeId": "48.2.167",
+  "transactionHash": "0xabeb7c746c58e42de338b8f6cd7277b8fae6a8c9aacda9b4b9edd2c609e2c1ef",
+  "processor": {
+    "name": "HashPortAI",
+    "symbol": "HPA",
+    "processorNumber": 167,
+    "contractAddress": "0x4f3b708af365b8f339dd35a8985ffe06c2553400"
+  },
+  "circuit": {
+    "name": "Capital Survival Gate",
+    "operation": "NAND",
+    "visibleLogicalGates": 1,
+    "processorBurnUnits": 3,
+    "specPath": "dist/content/capital-survival-gate.json",
+    "sha256": "59e8112c0d8851c3f7fe9e7c9ffcc4b35f66259e57e91a4f928556471173d33d"
+  },
+  "files": [
+    {
+      "language": "vi",
+      "role": "scenario",
+      "localPath": "dist/content/scenario-01.vi.json",
+      "tapePath": "/content/scenario-01.vi.json",
+      "contentType": "application/json",
+      "sha256": "9fea5f7fc5edb0a520495fa3637730a60b201c948cba7eec31a0d8d542104f57",
+      "bytes": 1650
+    },
+    {
+      "language": "en",
+      "role": "scenario",
+      "localPath": "dist/content/scenario-01.en.json",
+      "tapePath": "/content/scenario-01.en.json",
+      "contentType": "application/json",
+      "sha256": "1ae53944220f5ee7b00a11c0be30f825e6f7957463c683ba7f8b72fc72c1eb86",
+      "bytes": 1568
+    },
+    {
+      "language": "neutral",
+      "role": "circuit-spec",
+      "localPath": "dist/content/capital-survival-gate.json",
+      "tapePath": "/content/capital-survival-gate.json",
+      "contentType": "application/json",
+      "sha256": "59e8112c0d8851c3f7fe9e7c9ffcc4b35f66259e57e91a4f928556471173d33d",
+      "bytes": 2561
+    }
+  ],
+  "verification": {
+    "expectedChainId": 196,
+    "requireMatchingSha256": true,
+    "requireReadableOnchainFile": false,
+    "requireLiveCircuitEvaluation": true,
+    "note": "Content stays off-chain. Only circuit logic is read from X Layer; no container is needed."
+  },
+  "nextActions": [
+    "Collect real playtest feedback",
+    "Record demo video and finalize campaign submission"
+  ],
+  "walletAccounts": {
+    "login": "EIP-4361 message / EOA signature verified server-side",
+    "storage": "D1 off-chain, HTTP-only 7-day sessions",
+    "hub": "fictional; shared by authenticated Solo and online rooms",
+    "deletion": "clear history preserves balance; account deletion retains anti-repeat-grant address hash; reactivation starts at 0 HUB"
+  },
+  "creationReceipt": {
+    "status": "0x1",
+    "blockNumber": 74614726,
+    "verifiedOn": "2026-11-01",
+    "method": "eth_getTransactionReceipt"
+  }
+}

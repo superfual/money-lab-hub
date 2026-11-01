@@ -1,0 +1,63 @@
+{
+  "schema": "money-lab.scenario.v1",
+  "contentVersion": "1.0.0",
+  "project": "Money Lab",
+  "scenarioId": "emergency-fund-01",
+  "title": "Quỹ dự phòng",
+  "language": "vi",
+  "currency": "USD",
+  "initialCapital": 1000,
+  "prompt": "Bạn có 1.000 USD nhàn rỗi. Hãy chọn một kế hoạch cho tháng tới.",
+  "choices": [
+    {
+      "id": "A",
+      "label": "Đầu tư toàn bộ",
+      "investment": 1000,
+      "cashReserve": 0
+    },
+    {
+      "id": "B",
+      "label": "Giữ một phần tiền mặt",
+      "investment": 700,
+      "cashReserve": 300
+    },
+    {
+      "id": "C",
+      "label": "Ưu tiên dự phòng",
+      "investment": 400,
+      "cashReserve": 600
+    }
+  ],
+  "events": [
+    {
+      "id": "market-shock",
+      "type": "investment_return",
+      "rate": -0.2,
+      "description": "Khoản đầu tư giảm 20%."
+    },
+    {
+      "id": "vehicle-repair",
+      "type": "unexpected_expense",
+      "amount": 200,
+      "description": "Bạn cần 200 USD để sửa xe."
+    }
+  ],
+  "calculationRules": {
+    "eventOrder": [
+      "market-shock",
+      "vehicle-repair"
+    ],
+    "payExpenseFromCashFirst": true,
+    "sellInvestmentForCashShortfall": true,
+    "fees": 0,
+    "taxes": 0
+  },
+  "learningGoal": "Hiểu cách quỹ dự phòng giúp hạn chế việc phải bán tài sản khi thị trường giảm.",
+  "disclaimer": "Đây là tình huống giáo dục giả định, không phải lời khuyên đầu tư.",
+  "tapeOut": {
+    "targetChain": "X Layer",
+    "chainId": 196,
+    "intendedPath": "/content/scenario-01.vi.json",
+    "publicationStatus": "pending"
+  }
+}

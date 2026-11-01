@@ -1,0 +1,234 @@
+{
+  "rulesVersion": 21,
+  "seedRange": [
+    1,
+    2000
+  ],
+  "runs": 24000,
+  "assumptions": [
+    "Pure offline game-engine simulation; no RPC, wallets, server profiles or real HUB touched.",
+    "Same monthly schedules across policies; quiz answers are deterministically 75% correct per question in expectation.",
+    "Policies are fixed heuristics, not optimal agents or observed human behavior.",
+    "One isolated stage per run; stage eligibility and initial 80 HUB excluded. HUB net uses normal solo bond/reward rules.",
+    "No optional purchases; route zero in baseline; concentrated/diversified policies may use visible route metadata in v22.",
+    "95% Wilson intervals summarize seed sampling only, not model realism."
+  ],
+  "results": [
+    {
+      "level": "easy",
+      "policy": "cash",
+      "n": 2000,
+      "winPct": 95.35,
+      "winInterval95Pct": [
+        94.34,
+        96.19
+      ],
+      "survivalPct": 100,
+      "meanPoints": 79.99,
+      "meanNetWorth": 15340.77,
+      "meanHubNet": 19.17,
+      "survivorTwoQuestionsPct": 59.7,
+      "zeroQuestionsPct": 12.4,
+      "oneQuestionPct": 27.9,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "easy",
+      "policy": "reserve",
+      "n": 2000,
+      "winPct": 100,
+      "winInterval95Pct": [
+        99.81,
+        100
+      ],
+      "survivalPct": 100,
+      "meanPoints": 93.37,
+      "meanNetWorth": 15340.77,
+      "meanHubNet": 24.3,
+      "survivorTwoQuestionsPct": 59.7,
+      "zeroQuestionsPct": 12.4,
+      "oneQuestionPct": 27.9,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "easy",
+      "policy": "concentrated",
+      "n": 2000,
+      "winPct": 98.55,
+      "winInterval95Pct": [
+        97.93,
+        98.99
+      ],
+      "survivalPct": 100,
+      "meanPoints": 80.47,
+      "meanNetWorth": 15269.45,
+      "meanHubNet": 19.63,
+      "survivorTwoQuestionsPct": 59.7,
+      "zeroQuestionsPct": 12.4,
+      "oneQuestionPct": 27.9,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "easy",
+      "policy": "diversified",
+      "n": 2000,
+      "winPct": 99.75,
+      "winInterval95Pct": [
+        99.42,
+        99.89
+      ],
+      "survivalPct": 100,
+      "meanPoints": 83.25,
+      "meanNetWorth": 15250.6,
+      "meanHubNet": 20.84,
+      "survivorTwoQuestionsPct": 59.7,
+      "zeroQuestionsPct": 12.4,
+      "oneQuestionPct": 27.9,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "medium",
+      "policy": "cash",
+      "n": 2000,
+      "winPct": 49.95,
+      "winInterval95Pct": [
+        47.76,
+        52.14
+      ],
+      "survivalPct": 100,
+      "meanPoints": 66.92,
+      "meanNetWorth": 8796.96,
+      "meanHubNet": -4.6,
+      "survivorTwoQuestionsPct": 59.7,
+      "zeroQuestionsPct": 12.4,
+      "oneQuestionPct": 27.9,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "medium",
+      "policy": "reserve",
+      "n": 2000,
+      "winPct": 98.15,
+      "winInterval95Pct": [
+        97.46,
+        98.65
+      ],
+      "survivalPct": 100,
+      "meanPoints": 90.21,
+      "meanNetWorth": 8796.96,
+      "meanHubNet": 37.44,
+      "survivorTwoQuestionsPct": 59.7,
+      "zeroQuestionsPct": 12.4,
+      "oneQuestionPct": 27.9,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "medium",
+      "policy": "concentrated",
+      "n": 2000,
+      "winPct": 52.8,
+      "winInterval95Pct": [
+        50.61,
+        54.98
+      ],
+      "survivalPct": 100,
+      "meanPoints": 69.05,
+      "meanNetWorth": 8708.74,
+      "meanHubNet": -2.69,
+      "survivorTwoQuestionsPct": 59.7,
+      "zeroQuestionsPct": 12.4,
+      "oneQuestionPct": 27.9,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "medium",
+      "policy": "diversified",
+      "n": 2000,
+      "winPct": 84.2,
+      "winInterval95Pct": [
+        82.54,
+        85.73
+      ],
+      "survivalPct": 99.85,
+      "meanPoints": 77.56,
+      "meanNetWorth": 8684.76,
+      "meanHubNet": 21.54,
+      "survivorTwoQuestionsPct": 59.69,
+      "zeroQuestionsPct": 12.45,
+      "oneQuestionPct": 27.85,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "hard",
+      "policy": "cash",
+      "n": 2000,
+      "winPct": 0,
+      "winInterval95Pct": [
+        0,
+        0.19
+      ],
+      "survivalPct": 80.4,
+      "meanPoints": 33.87,
+      "meanNetWorth": 1655.88,
+      "meanHubNet": -80,
+      "survivorTwoQuestionsPct": 59.76,
+      "zeroQuestionsPct": 13.95,
+      "oneQuestionPct": 29.4,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "hard",
+      "policy": "reserve",
+      "n": 2000,
+      "winPct": 2.55,
+      "winInterval95Pct": [
+        1.94,
+        3.34
+      ],
+      "survivalPct": 80.4,
+      "meanPoints": 38.85,
+      "meanNetWorth": 1655.88,
+      "meanHubNet": -76.34,
+      "survivorTwoQuestionsPct": 59.76,
+      "zeroQuestionsPct": 13.95,
+      "oneQuestionPct": 29.4,
+      "meanForcedSales": 0
+    },
+    {
+      "level": "hard",
+      "policy": "concentrated",
+      "n": 2000,
+      "winPct": 0,
+      "winInterval95Pct": [
+        0,
+        0.19
+      ],
+      "survivalPct": 78.95,
+      "meanPoints": 32.25,
+      "meanNetWorth": 1590.88,
+      "meanHubNet": -80,
+      "survivorTwoQuestionsPct": 59.72,
+      "zeroQuestionsPct": 14.15,
+      "oneQuestionPct": 29.4,
+      "meanForcedSales": 0.32
+    },
+    {
+      "level": "hard",
+      "policy": "diversified",
+      "n": 2000,
+      "winPct": 0.45,
+      "winInterval95Pct": [
+        0.24,
+        0.85
+      ],
+      "survivalPct": 66.8,
+      "meanPoints": 34.17,
+      "meanNetWorth": 1858.22,
+      "meanHubNet": -79.37,
+      "survivorTwoQuestionsPct": 60.1,
+      "zeroQuestionsPct": 16.65,
+      "oneQuestionPct": 29.4,
+      "meanForcedSales": 0.01
+    }
+  ]
+}

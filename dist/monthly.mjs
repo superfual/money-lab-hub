@@ -1,0 +1,5 @@
+// Deterministic fictional monthly paths: shared monthly seed, asset-specific exposure.
+const ranges={equity:.035,crypto:.085,property:.018,fashion:.045,food:.04,fund:.025,legacy:.035};
+const round=n=>Math.round((n+Number.EPSILON)*100)/100;
+function hash(text){let n=2166136261;for(const c of text)n=Math.imul(n^c.charCodeAt(0),16777619);n^=n>>>16;n=Math.imul(n,0x7feb352d);return (n^(n>>>15))>>>0;}
+export function monthlyPortfolio(s,seed,volatility){const changes=[];let distribution=0;for(const p of s.positions){if(p.value<=0)continue;const h=hash(`${seed}:${s.month}:${p.id}`),unit=(h%2001-1000)/1000,rate=Math.round(unit*(ranges[p.kind]||.035)*volatility*10000)/10000,before=p.value;p.value=round(Math.max(0,before*(1+rate)));const cashRate=['fashion','food','property'].includes(p.kind)&&h%4!==0?(1+h%15)/1000:0,cash=round(before*cashRate);distribution=round(distribution+cash);changes.push({id:p.id,kind:p.kind,rate,change:round(p.value-before),cash,value:p.value});}s.investments=round(s.positions.reduce((n,p)=>n+p.value,0));s.cash=round(s.cash+distribution);return {changes,distribution,change:round(changes.reduce((n,p)=>n+p.change,0))};}

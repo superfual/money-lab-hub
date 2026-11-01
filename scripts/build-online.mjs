@@ -1,0 +1,6 @@
+// Bundle standard wallet-signature verification with Worker APIs; preserve authored static assets.
+import fs from 'node:fs';import path from 'node:path';import {build} from 'esbuild';
+const files={};
+function visit(dir){for(const f of fs.readdirSync(dir,{withFileTypes:true})){if(f.name==='server'||f.name==='.openai')continue;const p=path.join(dir,f.name);if(f.isDirectory())visit(p);else{const ext=path.extname(p),type={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.json':'application/json'}[ext];if(!type)continue;files['/'+path.relative('dist',p).split(path.sep).join('/')]={type,binary:ext==='.png',data:fs.readFileSync(p,ext==='.png'?'base64':'utf8')};}}}
+visit('dist');fs.mkdirSync('dist/server',{recursive:true});fs.mkdirSync('dist/.openai',{recursive:true});
+await build({entryPoints:['worker/index.mjs'],outfile:'dist/server/index.js',bundle:true,format:'esm',platform:'browser',target:'es2022',banner:{js:`const STATIC_FILES=${JSON.stringify(files)};`}});fs.copyFileSync('.openai/hosting.json','dist/.openai/hosting.json');console.log('Built Worker with wallet identity and online API');

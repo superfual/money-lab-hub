@@ -1,0 +1,12 @@
+node_modules/
+dist/server/
+dist/.openai/
+.moneylab-preview.sqlite*
+.moneylab-preview-errors.log
+.env
+.env.*
+!.env.example
+*.log
+*.tar.gz
+*.zip
+.DS_Store

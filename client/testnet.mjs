@@ -73,4 +73,5 @@ async function perform(action){
  await prepare(action);
 }
 document.addEventListener('click',async e=>{const a=e.target.closest('[data-action]')?.dataset.action;if(!a||busy)return;busy=true;document.querySelectorAll('[data-action]').forEach(b=>b.disabled=true);status(tr('Đang xử lý…','Working…'));try{await perform(a);if(a!=='confirm')status(tr('Đã cập nhật.','Updated.'));}catch(error){status(describe(error));}finally{busy=false;render();if(prepared)$('#review').querySelectorAll('button').forEach(b=>b.disabled=false);}});
+status(tr('Sẵn sàng · bản kết nối 25.2','Ready · connection build 25.2'));
 $('#language').onclick=()=>{localStorage.setItem('moneyLabLanguage',vi?'en':'vi');location.reload();};mountAccount();await accountReady;try{await refresh();}catch(e){status(describe(e));}

@@ -1,6 +1,6 @@
 # Money Lab Testnet Lab
 
-Status: implemented and locally tested; **not deployed to a blockchain until the owner's wallet transaction succeeds and activation verifies it**. Publishing the web page is not contract deployment. Existing Money Lab accounts, HUB, rooms and mainnet TapeOut circuit are separate and unchanged.
+Status: **deployed and activated on X Layer Testnet (1952)** at `0x38a51b2c79F689b9a65D60dd0B0Df612b42d4550`. The owner completed an Easy stage and settled it onchain: 82/100, +20 tHUB, balance 100 tHUB, Medium unlocked. See [captured public-chain evidence](testnet-evidence.json). This is one owner test, not an adoption metric. Existing Money Lab game HUB, rooms and mainnet TapeOut circuit remain separate.
 
 ## Owner deployment
 
@@ -35,6 +35,6 @@ No Duel/Group contract settlements, relayer, gas sponsorship, full onchain rando
 
 `npm ci`, `npm run contracts:build`, `npm run build`, `npm test`.
 
-Compiler pinned to Solidity 0.8.30, optimizer 200 runs, viaIR, EVM Paris. Public source, ABI, creation bytecode and deployed runtime hash are under `dist/content/`. Rebuilding unchanged source must reproduce the artifact. Contract checks run in a local Ganache EVM configured with chain ID 1952; that is **not** evidence of a public testnet deployment or an independent audit. API checks use isolated SQLite and signed wallet sessions. Production verification before activation checks configuration/unactivated status only; user wallet deployment remains required.
+Compiler pinned to Solidity 0.8.30, optimizer 200 runs, viaIR, EVM Paris. Public source, ABI, creation bytecode and deployed runtime hash are under `dist/content/`. Rebuilding unchanged source must reproduce the artifact. Contract checks run in a local Ganache EVM configured with chain ID 1952; that is **not** evidence of a public testnet deployment or an independent audit. API checks use isolated SQLite and signed wallet sessions. Public testnet verification now includes the captured successful Easy settlement receipt and a block-pinned balance/unlock/active-run snapshot. Other users still authorize their own registration, stage and settlement transactions.
 
 Official network reference: https://web3.okx.com/onchainos/dev-docs/xlayer/developer/build-on-xlayer/network-information

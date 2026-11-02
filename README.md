@@ -67,11 +67,11 @@ npm test
 npm run dev
 ```
 
-Open `http://localhost:4173/`. The preview creates its own ignored SQLite database and applies the two schema migrations. Set `PORT` or `MONEYLAB_PREVIEW_DB` to override the port or local database path. The preview server is a development tool; do not expose it as a production service.
+Open `http://localhost:4173/`. The preview creates its own ignored SQLite database and applies the schema migrations under `drizzle/`. Set `PORT` or `MONEYLAB_PREVIEW_DB` to override the port or local database path. The preview server is a development tool; do not expose it as a production service.
 
 For guest Solo only, `dist/` can also be served statically. Wallet accounts and online rooms require the API server and database; static hosting alone does not provide these features. Wallet login uses Secure cookies: use a secure context/localhost that supports them, and use HTTPS for hosted environments.
 
-The Worker build embeds authored static assets into `dist/server/index.js`. A production deployment needs the logical D1 binding `DB`, both `drizzle/` migrations, HTTPS and the appropriate hosting configuration. The exported `.openai/hosting.json` intentionally contains no account-specific Site ID. Do not overwrite an existing live deployment's identity or database when setting up another host.
+The Worker build embeds authored static assets into `dist/server/index.js`. A production deployment needs the logical D1 binding `DB`, all `drizzle/` migrations, HTTPS and the appropriate hosting configuration. The exported `.openai/hosting.json` intentionally contains no account-specific Site ID. Do not overwrite an existing live deployment's identity or database when setting up another host.
 
 ## Architecture
 
@@ -106,4 +106,4 @@ Owner-authorized chat reports now cover daily stage attempts, outcomes, scores, 
 
 ## Isolated Testnet Lab
 
-An optional X Layer Testnet (1952) experiment adds nontransferable tHUB points, onchain balances/level unlocks, and server-attested stage settlements. Existing game HUB and mainnet TapeOut reads remain separate. The web implementation is ready, but public-chain deployment still requires the owner wallet and exact-bytecode activation. No real-value token or market is launched. See [deployment and trust guide](docs/testnet-lab.md). 118 automated checks pass, including local EVM contract tests; this is not an independent audit.
+An optional X Layer Testnet (1952) experiment adds nontransferable tHUB points, onchain balances/level unlocks, and server-attested stage settlements. Existing game HUB and mainnet TapeOut reads remain separate. The contract is deployed and activated at `0x38a51b2c79F689b9a65D60dd0B0Df612b42d4550`. A verified owner Easy-stage settlement records 82 points, a 20 tHUB reward and Medium unlock. See [testnet evidence](docs/testnet-evidence.json). No real-value token or market is launched. See [deployment and trust guide](docs/testnet-lab.md). 118 automated checks pass, including local EVM contract tests; this is not an independent audit.

@@ -84,9 +84,12 @@
   },
   "testnetLab": {
     "chainId": 1952,
-    "status": "AWAITING_OWNER_WALLET_DEPLOYMENT",
-    "contractAddress": null,
+    "status": "DEPLOYED_AND_EASY_SETTLEMENT_VERIFIED",
+    "contractAddress": "0x38a51b2c79F689b9a65D60dd0B0Df612b42d4550",
     "token": "tHUB nontransferable test points; no monetary value",
-    "guide": "docs/testnet-lab.md"
+    "guide": "docs/testnet-lab.md",
+    "deploymentTransaction": "0x8768e2b59d3075b19ba2e3ab10239de551c1be157903e03e05c049e373c23215",
+    "firstVerifiedSettlement": "0x6b16d724a684ac8187c7557e70fede5f66b9ab6462d49104617c2efa09ba701e",
+    "evidence": "docs/testnet-evidence.json"
   }
 }

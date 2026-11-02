@@ -1,0 +1,36 @@
+{
+  "schema": "moneylab.testnet-evidence.v1",
+  "observedAt": "2026-11-02T07:51:18.648Z",
+  "network": {
+    "name": "X Layer Testnet",
+    "chainId": 1952,
+    "rpc": "https://testrpc.xlayer.tech/terigon"
+  },
+  "contract": "0x38a51b2c79F689b9a65D60dd0B0Df612b42d4550",
+  "deployment": {
+    "transactionHash": "0x8768e2b59d3075b19ba2e3ab10239de551c1be157903e03e05c049e373c23215",
+    "block": 45101053,
+    "activation": "Exact-bytecode owner deployment verified by application activation."
+  },
+  "observedBlock": 45147025,
+  "player": "0x1839231f7fc0d55a3ec58736574aca13f711326d",
+  "snapshot": {
+    "balance": 100,
+    "highestUnlockedLevel": "medium",
+    "activeRun": null,
+    "runsStarted": 1
+  },
+  "settlement": {
+    "transactionHash": "0x6b16d724a684ac8187c7557e70fede5f66b9ab6462d49104617c2efa09ba701e",
+    "receiptStatus": "0x1",
+    "block": 45101408,
+    "runId": "0x108965f7f42f983f80a87322e7d5125093063fd926819018cb25913a2cdffe8d",
+    "event": "RunSettled",
+    "level": "easy",
+    "score": 82,
+    "won": true,
+    "reward": 20,
+    "resultHash": "0x8757c988c5827fcfd7cab91d9afcbff6ed16e1a01f414e88e8607d0aa5dab6bb"
+  },
+  "scope": "Owner test transaction, not independent user adoption, revenue, a security audit, or fully onchain gameplay. tHUB has no monetary value. Gameplay decisions remain server-side; balances, unlocks and settlements are on testnet. Mainnet TapeOut circuit #48 remains separate."
+}

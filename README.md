@@ -112,3 +112,8 @@ An optional X Layer Testnet (1952) experiment adds nontransferable tHUB points, 
 ## Decision Lab — learn from a choice, not another roll
 
 A bilingual counterfactual panel compares one changed financial decision using the same recorded event seeds. Try the [illustrative example](https://fual-money-lab-x.phamphuanloc.chatgpt.site/decision-lab.html), or finish a newly recorded stage. Replay changes no HUB, scores, analytics or settlement. Optional read-only TapeOut verification composes a three-condition policy from actual mainnet NAND #48 receipts at one block. This composition is offchain; no new circuit is deployed and financial inputs are not attested by TapeOut. Old stages without exact traces cannot be reconstructed. See [implementation and limits](docs/decision-lab.md).
+
+
+## TapeOut risk engine
+
+Money Lab now provides shared pre-decision projections, the versioned `moneylab-risk-1` policy, a downloadable **undeployed** four-REF circuit design and a testnet result evidence checker. Try [Risk Lab](https://fual-money-lab-x.phamphuanloc.chatgpt.site/risk-lab.html), replay at [Decision Lab](https://fual-money-lab-x.phamphuanloc.chatgpt.site/decision-lab.html), and verify a downloaded result at [Verify Result](https://fual-money-lab-x.phamphuanloc.chatgpt.site/verify-result.html). USD gameplay finances and HUB points remain separate. R/C/D checks are educational offchain composition from actual mainnet NAND reads; the existing STOP gate still binds investment actions. The ledger verifies server-attested outcomes, not trustless gameplay. [Scope, sources and trust boundaries](docs/tapeout-risk-engine.md).

@@ -1,3 +1,4 @@
+import {RISK_POLICY} from './risk-rules.mjs';
 import {choices,comparison,policySignals,composePolicy,exampleGame} from './decision-lab.mjs';
 import {verifyCircuit} from './tapeout.mjs';
 const panels=new Map(),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),money=n=>'$'+Math.round(n).toLocaleString('en-US');
@@ -19,6 +20,7 @@ function draw(p){const {host,game:s,lang:l}=p,tr=(a,b)=>t(l,a,b);let candidates=
  let report;try{if(s.phase==='finished'&&p.index!==null)report=comparison(s,p.index);}catch{error='TRACE_MISMATCH';}
  p.report=report;const current=report?.reference.after||s;
  let html=`<div class="lab-heading"><div><p class="eyebrow">MONEY LAB × TAPEOUT</p><h2>${tr('Nếu chọn khác thì sao?','What if you chose differently?')}</h2></div><span class="lab-badge">${p.example?tr('VÍ DỤ MINH HỌA','ILLUSTRATIVE EXAMPLE'):tr('PHÒNG THÍ NGHIỆM QUYẾT ĐỊNH','DECISION LAB')}</span></div><p>${tr('Thay một lựa chọn, giữ nguyên các lượt gieo và hạt giống sự kiện đã ghi. Khám phá thanh khoản, không sửa kết quả thật.','Change one choice and keep the recorded rolls and event seeds. Explore liquidity without changing your real result.')}</p>`;
+ html+=`<p class="lab-fine">${tr('Quy tắc minh họa đang dùng','Illustrative policy in use')}: ${RISK_POLICY.id} · ${s.labTrace?.policy?.id===RISK_POLICY.id?tr('đã ghi trong nhật ký chặng','recorded in the stage trace'):tr('nhật ký cũ chưa ghim phiên bản; đối chiếu theo quy tắc minh họa hiện tại','older trace has no policy pin; the current illustrative policy is used')}</p>`;
  if(s.phase!=='finished')html+=`<p class="lab-fine">${tr('Bộ ghi đang hoạt động từ quyết định đầu tiên được lưu ở bản này. Hoàn thành chặng để thử lựa chọn khác.','Recording begins with the first decision saved in this version. Finish the stage to explore another choice.')}</p>${compact(s,l)}${signalHTML(s,l)}<button data-lab="verify" class="primary">${tr('Đọc TapeOut để kiểm tra quy tắc minh họa','Read TapeOut to check the illustrative policy')}</button>`;
  else if(error||!candidates.length)html+=`<p class="lab-warning">${tr('Chặng này chưa có nhật ký đủ để tái hiện chính xác, hoặc được kết thúc bằng bỏ cuộc. Không dựng lại các sự kiện bị thiếu. Những chặng mới sẽ ghi dữ liệu cần thiết.','This stage lacks an exact replay log or ended through surrender. Missing events will not be reconstructed. New stages record the necessary data.')}</p><a href="./decision-lab.html">${tr('Thử ví dụ minh họa có sẵn →','Try the built-in example →')}</a>`;
  else{

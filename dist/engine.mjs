@@ -1,3 +1,4 @@
+import {RISK_POLICY} from './risk-rules.mjs';
 import {monthlyPortfolio} from './monthly.mjs';
 import {LEVELS,levelOf,essentialCost,marketRate,incomeAt,wealthBenchmark} from './levels.mjs';
 import {QUESTIONS,OPPORTUNITIES,SURPRISES,QUICK_FUND,MARKET_RATES,opportunity,surprise,question,questionPool,MARKET_STORIES,marketStory,SIDE_JOBS,sideJob} from './events.mjs';
@@ -86,7 +87,7 @@ function recorded(s,op,args,operation){
  if(s._decisionReplay)return operation();
  const initial=s.labTrace?null:structuredClone(s);if(initial)delete initial.labTrace;
  const accepted=operation();if(!accepted)return accepted;
- s.labTrace??={version:1,initial,actions:[],truncated:false};
+ s.labTrace??={version:1,initial,actions:[],truncated:false,policy:structuredClone(RISK_POLICY),engineBalanceVersion:s.balanceVersion};
  if(s.labTrace.actions.length<256)s.labTrace.actions.push({op,args});else s.labTrace.truncated=true;return accepted;
 }
 export const manage=(s,a)=>recorded(s,'manage',[a],()=>manageImpl(s,a));

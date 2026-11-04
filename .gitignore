@@ -8,3 +8,6 @@ node_modules/
 dist/testnet-client.mjs
 .env*
 !.env.example
+
+dist/verify-result-client.mjs
+dist/crypto-hash.mjs

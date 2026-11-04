@@ -1,6 +1,6 @@
+import {RISK_POLICY,canonicalJSON} from './risk-rules.mjs';
 import {manage,prepareMove,chooseMove,roll,resolve,netWorth,score,validSave,createGame} from './engine.mjs';
 import {opportunity,surprise} from './events.mjs';
-import {financialModel} from './financial-view.mjs';
 import {CIRCUIT,evalData,decodeBytes} from './tapeout.mjs';
 const commands={manage,prepareMove,chooseMove,roll,resolve};
 export const decisionFingerprint=s=>JSON.stringify(Object.fromEntries(Object.entries(s).filter(([k])=>!['labTrace','labResult'].includes(k))));
@@ -29,15 +29,13 @@ export function choices(trace){
  return list;
 }
 export function comparison(game,index){
- const trace=game.labTrace,baseline=replay(trace);if(baseline.stopped||decisionFingerprint(baseline.game)!==decisionFingerprint(game))throw Error('TRACE_MISMATCH');
+ const trace=game.labTrace;if(trace?.policy&&canonicalJSON(trace.policy)!==canonicalJSON(RISK_POLICY))throw Error('POLICY_VERSION_MISMATCH');const baseline=replay(trace);if(baseline.stopped||decisionFingerprint(baseline.game)!==decisionFingerprint(game))throw Error('TRACE_MISMATCH');
  const choice=choices(trace).find(x=>x.index===index);if(!choice)throw Error('CHOICE_UNAVAILABLE');const alternative=replay(trace,{index,choice:choice.alternative});
  const metrics=s=>({month:s.month,netWorth:netWorth(s),liquid:s.cash+s.reserve,reserve:s.reserve,forcedSales:s.forcedSales,shortfall:s.shortfall,score:score(s).total});
  const reference=replay(trace,{index,choice:choice.original});
  return {choice,baseline,reference,alternative,actual:metrics(baseline.game),whatIf:metrics(alternative.game),sameHorizon:baseline.game.month===alternative.game.month};
 }
-export function policySignals(s){
- const m=financialModel(s);return {reserve:m.reserveMonths>=1?1:0,coverage:m.after>=0?1:0,installments:m.income>0&&m.installments<=.3*m.income?1:0,model:m};
-}
+export {policySignals} from './risk-policy.mjs';
 export function composePolicy(signals,proof){
  if(proof?.chainId!==196||proof.address?.toLowerCase()!==CIRCUIT.address||proof.id!==48||proof.owner?.toLowerCase()!==CIRCUIT.author||proof.shape?.join(',')!=='2,1,0,3'||!Number.isInteger(proof.blockNumber))throw Error('PROOF_INVALID');
  const cases=proof.cases;if(!Array.isArray(cases)||cases.length!==4)throw Error('PROOF_INVALID');

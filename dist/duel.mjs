@@ -1,3 +1,4 @@
+import {mountRiskPanel} from './risk-view.mjs';
 import {updateDecisionLab} from './decision-lab-view.mjs';
 import {recordGateProof} from './engine.mjs';
 import {mountAnalytics,trackLocal} from './analytics.mjs';
@@ -45,7 +46,7 @@ function render(){document.documentElement.lang=lang;const level=LEVELS[d.level]
  if(d.handoff)html+=`<div class="handoff"><section class="decision"><span class="eyebrow">${tr('CHUYỂN THIẾT BỊ','PASS THE DEVICE')}</span><h2>${tr('Đến lượt','Your turn,')} ${esc(p.name)}</h2>${d.lastFeedback?`<p>${esc(d.lastFeedback[lang])}</p>`:''}<p>${tr('Hãy đưa thiết bị cho người tiếp theo trước khi mở lượt.','Pass the device to the next player before opening the turn.')}</p>${btn(tr('Tôi đã sẵn sàng','I am ready'),'ready')}</section></div>`;
  }
  if(confirmAbort)html+=`<div class="handoff"><section class="decision"><h2>${tr('Bỏ trận đối đầu?','Abandon this duel?')}</h2><p>${tr('Mọi ghế chưa hoàn thành bị tính trượt Hub và thua cược. Ghế đã qua Hub vẫn được xét thưởng/cược. Trận được kết toán ngay; không thể hoàn tác.','Every unfinished seat fails Hub and forfeits its stake. Completed Hub clears retain eligibility and rewards. The match settles immediately; this cannot be undone.')}</p>${btn(tr('Xác nhận bỏ trận','Confirm abandonment'),'confirm-abort')}${btn(tr('Tiếp tục chơi','Keep playing'),'cancel-abort')}</section></div>`;
- html+=`<p class="hub-fine">${busy?tr('Đang đọc X Layer…','Reading X Layer…'):verified?tr('Mạch đã xác minh · Không ký ví · HUB giả lập','Circuit verified · No wallet signing · Fictional HUB'):tr('Chưa xác minh mạch.','Circuit not yet verified.')}</p>`;app.innerHTML=html;updateDecisionLab(!d.handoff?d.players[d.turn]?.game:null,lang,{container:'#matchDecisionLab'});
+ html+=`<p class="hub-fine">${busy?tr('Đang đọc X Layer…','Reading X Layer…'):verified?tr('Mạch đã xác minh · Không ký ví · HUB giả lập','Circuit verified · No wallet signing · Fictional HUB'):tr('Chưa xác minh mạch.','Circuit not yet verified.')}</p>`;app.innerHTML=html;mountRiskPanel(!d.handoff?d.players[d.turn]?.game:null,lang,{container:'#matchRiskPreflight',source:'local-multiplayer'});updateDecisionLab(!d.handoff?d.players[d.turn]?.game:null,lang,{container:'#matchDecisionLab'});
 }
 async function action(a){if(busy)return;if(a.startsWith('count-')){if(resizeDuel(d,Number(a.slice(6)))){save();render();}return;}if(a==='ready'){d.handoff=false;save();render();return;}if(a==='abort'){confirmAbort=true;render();return;}if(a==='cancel-abort'){confirmAbort=false;render();return;}if(a==='next-match'){d.done=false;save();render();return;}
  const candidate=structuredClone(d);let index=candidate.turn;

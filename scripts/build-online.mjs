@@ -1,6 +1,8 @@
 // Bundle standard wallet-signature verification with Worker APIs; preserve authored static assets.
 import fs from 'node:fs';import path from 'node:path';import {build} from 'esbuild';
+await build({entryPoints:['client/hash.mjs'],outfile:'dist/crypto-hash.mjs',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true});
 await build({entryPoints:['client/testnet.mjs'],outfile:'dist/testnet-client.mjs',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true});
+await build({entryPoints:['client/verify-result.mjs'],outfile:'dist/verify-result-client.mjs',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true});
 const files={};
 function visit(dir){for(const f of fs.readdirSync(dir,{withFileTypes:true})){if(f.name==='server'||f.name==='.openai')continue;const p=path.join(dir,f.name);if(f.isDirectory())visit(p);else{const ext=path.extname(p),type={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.json':'application/json','.sol':'text/plain; charset=utf-8'}[ext];if(!type)continue;files['/'+path.relative('dist',p).split(path.sep).join('/')]={type,binary:ext==='.png',data:fs.readFileSync(p,ext==='.png'?'base64':'utf8')};}}}
 visit('dist');fs.mkdirSync('dist/server',{recursive:true});fs.mkdirSync('dist/.openai',{recursive:true});

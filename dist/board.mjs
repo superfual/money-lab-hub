@@ -1,3 +1,4 @@
+import {mountRiskPanel} from './risk-view.mjs';
 import {updateDecisionLab} from './decision-lab-view.mjs';
 import {mountAnalytics,trackSolo} from './analytics.mjs';
 import {accountReady,account,accountRequest,accountMessage,mountAccount} from './account.mjs';
@@ -73,7 +74,7 @@ function circuit(){const g=receipt||state.gate;const text=lang==='vi'?{busy:'ĐA
 }
 
 function history(){$('#history').innerHTML=state.history.length?state.history.map(r=>`<div class="history-row"><span>${t('monthWord')} ${r.month}</span><strong>${t('tile')[r.type]} · ${resultText(r)}</strong><em>${money(r.netWorth)}</em>${monthlyHTML(r,lang)}${lessonHTML(r,lang)}${r.type==='learn'&&question(r.questionId)?`<small class="journal-lesson">${question(r.questionId)[lang][0]}<br>${question(r.questionId)[lang][3]}</small>`:''}${r.installments?.length?`<small class="journal-lesson">${t('installmentsPaid')}: ${money(r.installments.reduce((a,p)=>a+p.amount-p.unpaid,0))}</small>`:''}</div>`).join(''):`<div class="empty">${t('empty')}</div>`;}
-function render(){chrome();if(account){$('#saveLabel').textContent=serverError||((lang==='vi'?'Lưu theo ví · ':'Wallet save · ')+(serverBusy?(lang==='vi'?'Đang lưu…':'Saving…'):(lang==='vi'?'Đã đồng bộ':'Synced')));$('#progressReset').hidden=true;} renderHub();stats();$('#financialDashboard').innerHTML=financialDashboard(state,lang);board();management();decision();circuit();history();updateDecisionLab(state,lang);}
+function render(){chrome();if(account){$('#saveLabel').textContent=serverError||((lang==='vi'?'Lưu theo ví · ':'Wallet save · ')+(serverBusy?(lang==='vi'?'Đang lưu…':'Saving…'):(lang==='vi'?'Đã đồng bộ':'Synced')));$('#progressReset').hidden=true;} renderHub();stats();$('#financialDashboard').innerHTML=financialDashboard(state,lang);board();management();decision();circuit();history();updateDecisionLab(state,lang);mountRiskPanel(state,lang,{source:account?'server-solo':'guest-local'});}
 function random(max){const u=new Uint32Array(1);crypto.getRandomValues(u);const limit=Math.floor(0x100000000/max)*max;while(u[0]>=limit)crypto.getRandomValues(u);return u[0]%max;}
 async function synchronize(candidate,full=false,nextHub=structuredClone(hub)){
  if(chainBusy)return false;chainBusy=true;chainError=false;render();

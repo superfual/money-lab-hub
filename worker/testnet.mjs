@@ -30,7 +30,8 @@ export async function verifyDeployment(txHash,signer,rpc=chainRpc){
  const code=await rpc('eth_getCode',[receipt.contractAddress,'latest']);if(keccak256(code)!==artifact.runtimeHash)fail('UNRECOGNIZED_CONTRACT');
  return {address:getAddress(receipt.contractAddress),block:Number(BigInt(receipt.blockNumber))};
 }
-export function finishResult(game){const l=LEVELS[game.difficulty],points=score(game).total,survived=game.month===12&&game.shortfall===0,won=survived&&points>=l.target,reward=won?l.rewardBase+Math.floor((points-l.target)/5)*l.rewardStep:0;return {level:game.difficulty,points,survived,won,bond:l.bond,refund:won?l.bond:0,loss:won?0:l.bond,reward};}
+export {stageResult as finishResult} from '../dist/result-model.mjs';
+import {stageResult as finishResult} from '../dist/result-model.mjs';
 export async function handleTestnet(request,env,services={}){try{
  if(!env.DB)fail('STORAGE_UNAVAILABLE',503);const db=env.DB,url=new URL(request.url),path=url.pathname.replace('/api/testnet/','');
  const signer=env.MONEYLAB_TESTNET_ATTESTOR_KEY?new Wallet(env.MONEYLAB_TESTNET_ATTESTOR_KEY):null;
@@ -47,6 +48,7 @@ export async function handleTestnet(request,env,services={}){try{
   await db.prepare('INSERT OR IGNORE INTO moneylab_testnet_config (id,address,deployment_tx,deployment_block,attestor,created_at) VALUES (1,?,?,?,?,?)').bind(d.address,body.transactionHash,d.block,signer.address,Date.now()).run();return json({activated:true,address:d.address});
  }
  if(!config||!signer||config.attestor!==signer.address)fail('TESTNET_NOT_ACTIVATED',409);
+ if(path==='evidence'&&request.method==='GET'){const id=url.searchParams.get('runId');if(!/^0x[a-fA-F0-9]{64}$/.test(id||''))fail('INVALID_RUN');const saved=await db.prepare('SELECT state FROM moneylab_testnet_runs WHERE id=? AND account_id=? AND contract=?').bind(id,account.id,config.address).first();if(!saved)fail('NOT_FOUND',404);const game=JSON.parse(saved.state);if(game.phase!=='finished')fail('STAGE_NOT_FINISHED',409);return json({schema:'moneylab-testnet-result.v1',chainId:1952,contract:config.address,player:account.address,runId:id,serializedState:saved.state,resultHash:keccak256(toUtf8Bytes(saved.state)),expected:finishResult(game)});}
  if(path==='review'&&request.method==='GET'){const id=url.searchParams.get('runId');if(!/^0x[a-fA-F0-9]{64}$/.test(id||''))fail('INVALID_RUN');const saved=await db.prepare('SELECT state FROM moneylab_testnet_runs WHERE id=? AND account_id=? AND contract=?').bind(id,account.id,config.address).first();if(!saved)fail('NOT_FOUND',404);const game=JSON.parse(saved.state);if(game.phase!=='finished')fail('STAGE_NOT_FINISHED',409);return json({game});}
  const chain=await (services.readChain||readChain)(config.address,account.address);
  if(chain.attestor!==signer.address)fail('ATTESTOR_MISMATCH',503);

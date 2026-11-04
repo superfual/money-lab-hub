@@ -31,3 +31,7 @@ New accepted gameplay actions additionally retain the real stop-gate read receip
 ## Release validation
 
 Automated checks cover replay equality after JSON storage, immutable originals, seed-preserving alternate decisions, malformed/truncated traces, infeasible action stops, all eight composed policy inputs, receipt tampering, and authenticated testnet review isolation. No new contract, database migration, gas payment or blockchain deployment is required by this release.
+
+## Risk engine upgrade
+
+Preflight and replay now share `risk-policy.mjs` and the versioned `moneylab-risk-1` descriptor. New traces pin the policy, while old unpinned traces are labelled. Explicit preflight checks export policy/input digests, real circuit reads and the undeployed REF design conformance vectors. See [risk engine scope and trust boundaries](tapeout-risk-engine.md). Testnet result verification is separate from the TapeOut Boolean proof.

@@ -21,10 +21,10 @@ The downloadable draft uses 4 REF records pointing to the existing mainnet circu
 
 | Record | Inputs | Output signal |
 |---|---|---|
-| REF #48 | R=0, C=1 | 3 = NAND(R,C) |
-| REF #48 | 3,3 | 4 = AND(R,C) |
-| REF #48 | 4,D=2 | 5 = NAND(RC,D) |
-| REF #48 | 5,5 | 6 = AND(R,C,D) |
+| REF #48 | R=2, C=3 | 5 = NAND(R,C) |
+| REF #48 | 5,5 | 6 = AND(R,C) |
+| REF #48 | 6,D=4 | 7 = NAND(RC,D) |
+| REF #48 | 7,7 | 8 = AND(R,C,D) |
 
 148 encoded bytes, 3 input pins, 1 output, 0 state, 4 references, 12 expanded gates because #48 reports 3 gates. No top-level NAND/LATCH records. The encoding follows the TAP-02 **draft**, not a declaration of finalized cross-chain conformance. All eight Boolean vectors are checked locally using the actual read truth table. **This does not simulate a tape-out or deploy the design.** Processor registration, current target-chain semantics, fee and burn requirements need a fresh read-only transaction simulation before any real tape-out. This release quotes no transaction cost and spends no funds.
 
@@ -49,3 +49,20 @@ This demonstrates a meaningful TapeOut extension: a reusable financial rule circ
 ## Validation
 
 Tests cover projection isolation/accounting, STOP/funds rejection, policy/input digest changes, policy pin mismatch, REF byte layout/eight vectors, result hash and all outcome fields, wrong chain/runtime, absent settlement, unavailable RPC and owner-scoped read-only evidence. Existing engine, room, wallet and EVM contract checks continue to run. No migration or contract replacement is required.
+
+### REF draft revision 2
+
+The initial undeployed design omitted the two constant signal slots. Revision 2 reserves signals 0/1 for constants, uses inputs R/C/D at 2/3/4 and produces output at 8. The running offchain composition and existing #48 circuit were unaffected. Byte-level tests now decode the encoded REF records independently of the design evaluator.
+
+### Native X Layer simulation — no broadcast
+
+Revision 2 passed all 8 inputs at mainnet source block **75,027,318**. `scripts/check-ref-atomic.mjs` compiles a temporary helper and supplies its code using the standard `eth_call` state-override parameter at an otherwise empty address. Inside that one ephemeral call, the helper calls actual `tapeout`, checks the stored netlist, reads the 3/1/0/12 shape, and invokes actual processor `eval` for all eight inputs. Outputs are `0,0,0,0,0,0,0,1`. No transaction is broadcast and none of that call's writes persist. The returned circuit ID belongs only to the simulation and is **not** an existing new mainnet circuit.
+
+See [raw atomic simulation](ref-atomic-simulation.json) and [read-only fee preflight](ref-preflight.json). These are point-in-time observations, not permanent quotes. Re-run both scripts before creating a real transaction. The wallet must show the final fee before any signature. No container is opened.
+
+Reproduce from the repository root (Node with proxy support if required):
+
+```sh
+node --use-env-proxy scripts/simulate-ref.mjs docs/ref-preflight.json
+node --use-env-proxy scripts/check-ref-atomic.mjs docs/ref-atomic-simulation.json
+```

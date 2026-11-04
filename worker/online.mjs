@@ -1,3 +1,4 @@
+import {recordGateProof} from '../dist/engine.mjs';
 import {safelyMeasure,recordMetric,activity,stageMetrics,testCohort} from './metrics.mjs';
 import {walletIdentity} from './identity.mjs';
 import {createHub,unlocked} from '../dist/hub.mjs';
@@ -58,7 +59,7 @@ export async function handleOnline(request,env,services={}){try{
   }else if(path==='/act'){
    if(!room.d.active||room.d.turn!==seat)fail('NOT_YOUR_TURN',403);
    const current=room.d.players[seat];if(body.action==='surrender'){resignDuel(room.d);}else if(!duelAct(room.d,String(body.action)))fail('INVALID_ACTION');
-   const a=current.game.gate.IN0,b=current.game.gate.IN1;let receipt;if(services.gate)receipt=await services.gate(a,b);else{if(!validSnapshot(room.proof))fail('CIRCUIT_SNAPSHOT_INVALID',503);const actual=room.proof.cases.find(r=>r.IN0===a&&r.IN1===b);if(!actual)fail('CIRCUIT_SNAPSHOT_INVALID',503);receipt={...actual,source:'verified-match-snapshot',usedAt:new Date().toISOString()};}current.game.gate={IN0:receipt.IN0,IN1:receipt.IN1,OUT0:receipt.OUT0};current.receipt=receipt;room.d.handoff=false;
+   const a=current.game.gate.IN0,b=current.game.gate.IN1;let receipt;if(services.gate)receipt=await services.gate(a,b);else{if(!validSnapshot(room.proof))fail('CIRCUIT_SNAPSHOT_INVALID',503);const actual=room.proof.cases.find(r=>r.IN0===a&&r.IN1===b);if(!actual)fail('CIRCUIT_SNAPSHOT_INVALID',503);receipt={...actual,source:'verified-match-snapshot',usedAt:new Date().toISOString()};}current.game.gate={IN0:receipt.IN0,IN1:receipt.IN1,OUT0:receipt.OUT0};recordGateProof(current.game,receipt);current.receipt=receipt;room.d.handoff=false;
    changedProfiles=room.members.map((m,i)=>({id:m.id,hub:room.d.players[i].hub,room:code}));
    if(room.d.done)contribution=room.d.betResult.treasury;
   }else fail('NOT_FOUND',404);

@@ -1,3 +1,4 @@
+import {recordGateProof} from '../dist/engine.mjs';
 import {safelyMeasure,recordMetric,activity,stageMetrics,forgetMetrics,refreshSnapshot,testCohort} from './metrics.mjs';
 import {walletIdentity,token} from './identity.mjs';
 import {createHub,beginRun,settleRun,abandonRun,unlocked} from '../dist/hub.mjs';
@@ -38,7 +39,7 @@ export async function handleSolo(request,env,services={}){try{
   else if(action.startsWith('route-')){if(!chooseMove(next,Number(action.slice(6))))fail('INVALID_ACTION');}
   else if(action.startsWith('manage-')){if(!manage(next,action.slice(7)))fail('INVALID_ACTION');}
   else if(!resolve(next,action))fail('INVALID_ACTION');
-  receipt=await (services.gate||evaluateGate)(next.gate.IN0,next.gate.IN1);if(receipt.IN0!==next.gate.IN0||receipt.IN1!==next.gate.IN1||![0,1].includes(receipt.OUT0))fail('CIRCUIT_READ_INVALID',503);next.gate={IN0:receipt.IN0,IN1:receipt.IN1,OUT0:receipt.OUT0};settleRun(h,next);
+  receipt=await (services.gate||evaluateGate)(next.gate.IN0,next.gate.IN1);if(receipt.IN0!==next.gate.IN0||receipt.IN1!==next.gate.IN1||![0,1].includes(receipt.OUT0))fail('CIRCUIT_READ_INVALID',503);next.gate={IN0:receipt.IN0,IN1:receipt.IN1,OUT0:receipt.OUT0};recordGateProof(next,receipt);settleRun(h,next);
  }else fail('NOT_FOUND',404);
  const op=token();const statements=[
   db.prepare('UPDATE moneylab_solo SET state=?,revision=revision+1,operation_id=?,last_request=? WHERE id=? AND revision=? AND EXISTS (SELECT 1 FROM moneylab_profiles WHERE id=? AND room_code IS NULL AND hub=?)').bind(JSON.stringify(next),op,body.requestId,account.id,row.revision,account.id,profile.hub),
@@ -55,4 +56,4 @@ export async function handleSolo(request,env,services={}){try{
  });return json({game:next,hub:h,revision:row.revision+1,roomCode:null,address:account.address,receipt});
  }catch(e){services.onError?.(e);if(!e.status)console.error('Money Lab progress:',e.message);return json({error:e.status?e.message:'PROGRESS_UNAVAILABLE'},e.status||503);}}
 
-function scrubRoom(room,id,remove){let changed=false;const member=room.members.find(m=>m.id===id);if(remove&&member){member.name='Deleted player';changed=true;}const seat=room.playerIds?.indexOf(id)??room.members.findIndex(m=>m.id===id);if(seat>=0&&room.d.players[seat]){const p=room.d.players[seat];if(remove){p.name='Deleted player';p.game=null;p.hub={balance:p.hub.balance};}else{if(p.game){p.game.history=[];p.game.last=null;p.game.pending=null;}if(p.hub){p.hub.journey=[];p.hub.ledger=[];}}p.receipt=null;changed=true;}return changed;}
+function scrubRoom(room,id,remove){let changed=false;const member=room.members.find(m=>m.id===id);if(remove&&member){member.name='Deleted player';changed=true;}const seat=room.playerIds?.indexOf(id)??room.members.findIndex(m=>m.id===id);if(seat>=0&&room.d.players[seat]){const p=room.d.players[seat];if(remove){p.name='Deleted player';p.game=null;p.hub={balance:p.hub.balance};}else{if(p.game){p.game.history=[];p.game.last=null;p.game.pending=null;delete p.game.labTrace;}if(p.hub){p.hub.journey=[];p.hub.ledger=[];}}p.receipt=null;changed=true;}return changed;}

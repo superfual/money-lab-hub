@@ -1,3 +1,4 @@
+import {recordGateProof} from '../dist/engine.mjs';
 import {Wallet,Interface,AbiCoder,keccak256,toUtf8Bytes,getAddress} from 'ethers';
 import artifact from '../dist/content/testnet-contract.json' with {type:'json'};
 import {walletIdentity} from './identity.mjs';
@@ -46,6 +47,7 @@ export async function handleTestnet(request,env,services={}){try{
   await db.prepare('INSERT OR IGNORE INTO moneylab_testnet_config (id,address,deployment_tx,deployment_block,attestor,created_at) VALUES (1,?,?,?,?,?)').bind(d.address,body.transactionHash,d.block,signer.address,Date.now()).run();return json({activated:true,address:d.address});
  }
  if(!config||!signer||config.attestor!==signer.address)fail('TESTNET_NOT_ACTIVATED',409);
+ if(path==='review'&&request.method==='GET'){const id=url.searchParams.get('runId');if(!/^0x[a-fA-F0-9]{64}$/.test(id||''))fail('INVALID_RUN');const saved=await db.prepare('SELECT state FROM moneylab_testnet_runs WHERE id=? AND account_id=? AND contract=?').bind(id,account.id,config.address).first();if(!saved)fail('NOT_FOUND',404);const game=JSON.parse(saved.state);if(game.phase!=='finished')fail('STAGE_NOT_FINISHED',409);return json({game});}
  const chain=await (services.readChain||readChain)(config.address,account.address);
  if(chain.attestor!==signer.address)fail('ATTESTOR_MISMATCH',503);
  const row=chain.active?await db.prepare('SELECT state,revision,last_request FROM moneylab_testnet_runs WHERE id=? AND account_id=? AND contract=?').bind(chain.active.runId,account.id,config.address).first():null;
@@ -81,7 +83,7 @@ export async function handleTestnet(request,env,services={}){try{
  else if(!resolve(next,action))fail('INVALID_ACTION');
  const receipt=await(services.gate||evaluateGate)(next.gate.IN0,next.gate.IN1);
  if(receipt.IN0!==next.gate.IN0||receipt.IN1!==next.gate.IN1||receipt.OUT0!==(receipt.IN0&&receipt.IN1?0:1))fail('CIRCUIT_READ_INVALID',503);
- next.gate={IN0:receipt.IN0,IN1:receipt.IN1,OUT0:receipt.OUT0};if(next.phase==='finished')next.labResult=finishResult(next);
+ next.gate={IN0:receipt.IN0,IN1:receipt.IN1,OUT0:receipt.OUT0};recordGateProof(next,receipt);if(next.phase==='finished')next.labResult=finishResult(next);
  const changed=await db.prepare('UPDATE moneylab_testnet_runs SET state=?,revision=revision+1,last_request=? WHERE id=? AND account_id=? AND revision=?').bind(JSON.stringify(next),body.requestId,next.runId,account.id,row.revision).run();if(!changed.meta.changes)fail('PROGRESS_CHANGED_REFRESH',409);
  return json({chain,game:next,revision:row.revision+1,receipt});
  }catch(e){services.onError?.(e);return json({error:e.status?e.message:'TESTNET_UNAVAILABLE'},e.status||503);}}

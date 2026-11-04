@@ -14,7 +14,7 @@ export function nand(a,b){return a&&b?0:1;}
 function totals(s){s.investments=cents(s.positions.reduce((a,p)=>a+p.value,0));}
 function sell(s,amount){let remaining=amount;for(const p of s.positions){if(p.locked)continue;const value=Math.min(p.value,remaining);p.value=cents(p.value-value);remaining=cents(remaining-value);if(!remaining)break;}totals(s);return cents(amount-remaining);}
 function buy(s,o){if(s.cash<o.cost||s.gate.OUT0===0)return false;s.cash=cents(s.cash-o.cost);s.positions.push({id:o.id,kind:o.kind,value:o.gross||o.cost,debt:o.debt||0,payment:o.payment||0,locked:['property','fashion','food'].includes(o.kind)});totals(s);return true;}
-export function manage(s,action){if(s.phase!=='ready'||!s.started||s.route)return false;
+function manageImpl(s,action){if(s.phase!=='ready'||!s.started||s.route)return false;
  if(action==='reserve'&&s.cash>=500){s.cash-=500;s.reserve+=500;}
  else if(action==='release'&&s.reserve>=500){s.reserve-=500;s.cash+=500;}
  else if(action==='invest'){if(!buy(s,QUICK_FUND))return false;}
@@ -30,7 +30,7 @@ function spend(s,amount,cashFirst=false){const insufficient=amount>s.cash+s.rese
  return {amount,fromReserve,fromCash,sale,unpaid:remaining};
 }
 // Two distinct movement options are locked before revealing an event.
-export function prepareMove(s,first,offset,eventSeed){
+function prepareMoveImpl(s,first,offset,eventSeed){
  if(s.phase!=='ready'||!s.started||s.route||s.month>=12)return false;
  if(!Number.isInteger(first)||first<1||first>6||!Number.isInteger(offset)||offset<1||offset>5||!Number.isSafeInteger(eventSeed)||eventSeed<0)return false;
  const rawType=TILES[first],need=2-knowledgeVisits(s),forceKnowledge=s.balanceVersion===22&&need>0&&12-s.month<=need,type=s.month===0?'opportunity':forceKnowledge?'learn':rawType==='learn'&&knowledgeVisits(s)>=2?['opportunity','expense','market','salary'][eventSeed%4]:rawType,candidates=TILES.map((t,i)=>t===type?i:-1).filter(i=>i>=0),a=eventSeed%candidates.length,b=(a+1+(offset-1)%(candidates.length-1))%candidates.length;s.route={dice:[first,1+(first-1+offset)%6],destinations:[candidates[a],candidates[b]],eventSeed};return true;
@@ -38,11 +38,11 @@ export function prepareMove(s,first,offset,eventSeed){
 export const knowledgeVisits=s=>Math.max(s.answered||0,s.history.filter(r=>r.type==='learn').length);
 export const routePosition=(s,i)=>s.route?.destinations?.[i]??(s.position+s.route.dice[i])%TILES.length;
 export function routePreview(s,index){const destination=routePosition(s,index),type=TILES[destination];if(type!=='opportunity')return {destination,type};const pool=OPPORTUNITIES.filter(o=>!s.usedOpportunities.includes(o.id)),choices=pool.length?pool:OPPORTUNITIES,seed=s.route.destinations?(s.route.eventSeed+destination*977)>>>0:s.route.eventSeed,o=choices[seed%choices.length];return {destination,type,cost:o.cost,kind:o.kind,locked:['property','fashion','food'].includes(o.kind),payment:o.payment||0,debtAdded:o.debt||0};}
-export function chooseMove(s,index){
+function chooseMoveImpl(s,index){
  if(!s.route||![0,1].includes(index)||s.phase!=='ready')return false;
- const {dice,eventSeed,destinations}=s.route;delete s.route;return roll(s,dice[index],eventSeed,destinations?.[index]);
+ const {dice,eventSeed,destinations}=s.route;delete s.route;return rollImpl(s,dice[index],eventSeed,destinations?.[index]);
 }
-export function roll(s,die,eventSeed=0,destination){if(s.phase!=='ready'||!s.started||s.route)return false;if(!Number.isInteger(die)||die<1||die>6)throw Error('Invalid die');if(!Number.isSafeInteger(eventSeed)||eventSeed<0)throw Error('Invalid event seed');
+function rollImpl(s,die,eventSeed=0,destination){if(s.phase!=='ready'||!s.started||s.route)return false;if(!Number.isInteger(die)||die<1||die>6)throw Error('Invalid die');if(!Number.isSafeInteger(eventSeed)||eventSeed<0)throw Error('Invalid event seed');
  if(destination!==undefined&&(!Number.isInteger(destination)||destination<0||destination>=TILES.length))return false;s.month++;s.position=destination??(s.position+die)%TILES.length;if(TILES[s.position]==='learn'&&knowledgeVisits(s)>=2)s.position=[1,6,10,15][eventSeed%4];s.dice=die;const level=levelOf(s),monthly={month:s.month,salary:incomeAt(s),living:level.living,surcharge:level.pressure?.[s.month]||0,incomeCut:level.salary-incomeAt(s)};s.cash=cents(s.cash+monthly.salary);monthly.portfolio=monthlyPortfolio(s,eventSeed,level.volatility);monthly.payment=spend(s,level.living+monthly.surcharge,true);
  const installments=[];
  for(const p of s.positions){const due=Math.min(p.debt,p.payment);if(due<=0)continue;const payment=spend(s,due,true);p.debt=cents(p.debt-(due-payment.unpaid));installments.push({id:p.id,...payment});}
@@ -56,7 +56,7 @@ export function roll(s,die,eventSeed=0,destination){if(s.phase!=='ready'||!s.sta
  s.phase='event';return true;
 }
 export const financialSnapshot=s=>({cash:s.cash,reserve:s.reserve,investments:s.investments,liquidAssets:sellable(s),lockedAssets:cents(s.positions.filter(p=>p.locked).reduce((n,p)=>n+p.value,0)),debt:debt(s)});
-export function resolve(s,choice){if(s.phase!=='event')return false;const e=s.pending,before=netWorth(s);let r={type:e.type,choice,month:s.month,variant:e.variant,eventId:e.eventId,questionId:e.questionId,marketId:e.marketId,incomeId:e.incomeId,installments:e.installments||[],monthly:e.monthly||null};
+function resolveImpl(s,choice){if(s.phase!=='event')return false;const e=s.pending,before=netWorth(s);let r={type:e.type,choice,month:s.month,variant:e.variant,eventId:e.eventId,questionId:e.questionId,marketId:e.marketId,incomeId:e.incomeId,installments:e.installments||[],monthly:e.monthly||null};
  if(e.type==='opportunity'){const o=e.eventId?opportunity(e.eventId):OPPORTUNITIES[e.variant];r.eventId=o.id;if(choice==='buy'){if(!buy(s,o))return false;r.bought=o.cost;r.debtAdded=o.debt||0;}else if(choice!=='skip')return false;}
  else if(e.type==='expense'){const item=e.eventId?surprise(e.eventId):SURPRISES[e.variant];if(!item)return false;r.eventId=item.id;
   if(item.optional){if(choice==='spend'){if(s.cash<item.cost)return false;s.cash=cents(s.cash-item.cost);s.enjoyment+=item.joy;s.optionalSpent+=item.cost;r.optionalCost=item.cost;r.joy=item.joy;}else if(choice!=='skip')return false;}
@@ -79,4 +79,24 @@ export function restoreGame(saved){
  for(const r of s.history){if(r.type==='learn'){r.questionId=QUESTIONS[r.variant||0].id;if(!s.usedQuestions.includes(r.questionId))s.usedQuestions.push(r.questionId);}}
  if(s.pending){const e=s.pending;if(e.type==='learn'){const desired=QUESTIONS[e.variant].id;e.questionId=s.usedQuestions.includes(desired)?QUESTIONS.find(q=>!s.usedQuestions.includes(q.id))?.id||null:desired;e.answerOrder=e.variant===1?1:0;if(e.questionId&&!s.usedQuestions.includes(e.questionId))s.usedQuestions.push(e.questionId);}if(e.type==='opportunity')e.eventId=OPPORTUNITIES[0].id;if(e.type==='expense')e.eventId=SURPRISES[e.variant].id;e.installments=[];}
  return validSave(s)?s:null;
+}
+
+// Reproducible experiment log; never influences accounting or random draws.
+function recorded(s,op,args,operation){
+ if(s._decisionReplay)return operation();
+ const initial=s.labTrace?null:structuredClone(s);if(initial)delete initial.labTrace;
+ const accepted=operation();if(!accepted)return accepted;
+ s.labTrace??={version:1,initial,actions:[],truncated:false};
+ if(s.labTrace.actions.length<256)s.labTrace.actions.push({op,args});else s.labTrace.truncated=true;return accepted;
+}
+export const manage=(s,a)=>recorded(s,'manage',[a],()=>manageImpl(s,a));
+export const prepareMove=(s,a,b,c)=>recorded(s,'prepareMove',[a,b,c],()=>prepareMoveImpl(s,a,b,c));
+export const chooseMove=(s,i)=>recorded(s,'chooseMove',[i],()=>chooseMoveImpl(s,i));
+export const roll=(s,d,seed=0,destination)=>recorded(s,'roll',destination===undefined?[d,seed]:[d,seed,destination],()=>rollImpl(s,d,seed,destination));
+export const resolve=(s,a)=>recorded(s,'resolve',[a],()=>resolveImpl(s,a));
+export function recordGateProof(s,r){
+ const a=s.labTrace?.actions?.at(-1);
+ if(!a||r?.chainId!==196||r.contract?.toLowerCase()!=='0x4f3b708af365b8f339dd35a8985ffe06c2553400'||r.circuitId!==48||r.method!=='eth_call'||!Number.isInteger(r.blockNumber)||!r.calldata||!r.rawResult)return;
+ if(r.IN0!==s.gate.IN0||r.IN1!==s.gate.IN1||r.OUT0!==s.gate.OUT0)return;
+ a.proof={IN0:r.IN0,IN1:r.IN1,OUT0:r.OUT0,chainId:196,contract:r.contract,circuitId:48,method:'eth_call',blockNumber:r.blockNumber,calldata:r.calldata,rawResult:r.rawResult,checkedAt:r.checkedAt,source:r.source||'live-read'};
 }

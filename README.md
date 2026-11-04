@@ -107,3 +107,8 @@ Owner-authorized chat reports now cover daily stage attempts, outcomes, scores, 
 ## Isolated Testnet Lab
 
 An optional X Layer Testnet (1952) experiment adds nontransferable tHUB points, onchain balances/level unlocks, and server-attested stage settlements. Existing game HUB and mainnet TapeOut reads remain separate. The contract is deployed and activated at `0x38a51b2c79F689b9a65D60dd0B0Df612b42d4550`. A verified owner Easy-stage settlement records 82 points, a 20 tHUB reward and Medium unlock. See [testnet evidence](docs/testnet-evidence.json). No real-value token or market is launched. See [deployment and trust guide](docs/testnet-lab.md). 118 automated checks pass, including local EVM contract tests; this is not an independent audit.
+
+
+## Decision Lab — learn from a choice, not another roll
+
+A bilingual counterfactual panel compares one changed financial decision using the same recorded event seeds. Try the [illustrative example](https://fual-money-lab-x.phamphuanloc.chatgpt.site/decision-lab.html), or finish a newly recorded stage. Replay changes no HUB, scores, analytics or settlement. Optional read-only TapeOut verification composes a three-condition policy from actual mainnet NAND #48 receipts at one block. This composition is offchain; no new circuit is deployed and financial inputs are not attested by TapeOut. Old stages without exact traces cannot be reconstructed. See [implementation and limits](docs/decision-lab.md).

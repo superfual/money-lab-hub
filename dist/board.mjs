@@ -1,3 +1,4 @@
+import {updateDecisionLab} from './decision-lab-view.mjs';
 import {mountAnalytics,trackSolo} from './analytics.mjs';
 import {accountReady,account,accountRequest,accountMessage,mountAccount} from './account.mjs';
 import {routeChoicesHTML} from './route-view.mjs';
@@ -11,7 +12,7 @@ import {LEVELS,levelOf,essentialCost,marketRate,incomeAt,wealthBenchmark} from '
 import {createHub,validHub,restoreHub,unlocked,beginRun,settleRun,abandonRun} from './hub.mjs';
 import {QUESTIONS,opportunity,surprise,question,CATEGORY_NAMES,MARKET_RATES,marketStory,questionPool,sideJob} from './events.mjs';
 import {CIRCUIT,evaluateGate,verifyCircuit} from './tapeout.mjs';
-import {TILES,RULES,routePosition,prepareMove,chooseMove,createGame,netWorth,manage,roll,resolve,score,restoreGame,debt,sellable,monthlyPayment} from './engine.mjs';
+import {TILES,RULES,routePosition,prepareMove,chooseMove,createGame,netWorth,manage,roll,resolve,score,restoreGame,debt,sellable,monthlyPayment,recordGateProof} from './engine.mjs';
 const $=s=>document.querySelector(s), KEY='moneyLabHub.v1';
 let lang='vi',state=createGame(),hub=createHub(),selectedMode='challenge',rolling=false,storageAvailable=true;
 let serverRevision=0,serverBusy=false,serverError='',booting=true;
@@ -72,7 +73,7 @@ function circuit(){const g=receipt||state.gate;const text=lang==='vi'?{busy:'ĐA
 }
 
 function history(){$('#history').innerHTML=state.history.length?state.history.map(r=>`<div class="history-row"><span>${t('monthWord')} ${r.month}</span><strong>${t('tile')[r.type]} · ${resultText(r)}</strong><em>${money(r.netWorth)}</em>${monthlyHTML(r,lang)}${lessonHTML(r,lang)}${r.type==='learn'&&question(r.questionId)?`<small class="journal-lesson">${question(r.questionId)[lang][0]}<br>${question(r.questionId)[lang][3]}</small>`:''}${r.installments?.length?`<small class="journal-lesson">${t('installmentsPaid')}: ${money(r.installments.reduce((a,p)=>a+p.amount-p.unpaid,0))}</small>`:''}</div>`).join(''):`<div class="empty">${t('empty')}</div>`;}
-function render(){chrome();if(account){$('#saveLabel').textContent=serverError||((lang==='vi'?'Lưu theo ví · ':'Wallet save · ')+(serverBusy?(lang==='vi'?'Đang lưu…':'Saving…'):(lang==='vi'?'Đã đồng bộ':'Synced')));$('#progressReset').hidden=true;} renderHub();stats();$('#financialDashboard').innerHTML=financialDashboard(state,lang);board();management();decision();circuit();history();}
+function render(){chrome();if(account){$('#saveLabel').textContent=serverError||((lang==='vi'?'Lưu theo ví · ':'Wallet save · ')+(serverBusy?(lang==='vi'?'Đang lưu…':'Saving…'):(lang==='vi'?'Đã đồng bộ':'Synced')));$('#progressReset').hidden=true;} renderHub();stats();$('#financialDashboard').innerHTML=financialDashboard(state,lang);board();management();decision();circuit();history();updateDecisionLab(state,lang);}
 function random(max){const u=new Uint32Array(1);crypto.getRandomValues(u);const limit=Math.floor(0x100000000/max)*max;while(u[0]>=limit)crypto.getRandomValues(u);return u[0]%max;}
 async function synchronize(candidate,full=false,nextHub=structuredClone(hub)){
  if(chainBusy)return false;chainBusy=true;chainError=false;render();
@@ -80,7 +81,7 @@ async function synchronize(candidate,full=false,nextHub=structuredClone(hub)){
   if(full||!proof)proof=await verifyCircuit();
   const g=candidate.gate;
   receipt=await evaluateGate(g.IN0,g.IN1);
-  candidate.gate={IN0:receipt.IN0,IN1:receipt.IN1,OUT0:receipt.OUT0};
+  candidate.gate={IN0:receipt.IN0,IN1:receipt.IN1,OUT0:receipt.OUT0};if(!full)recordGateProof(candidate,receipt);
   if(!account){settleRun(nextHub,candidate);trackSolo(state,candidate);state=candidate;hub=nextHub;persist();}chainReady=true;return true;
  }catch(error){console.warn('TapeOut read unavailable:',error.message);chainReady=false;chainError=true;return false;}
  finally{chainBusy=false;render();}

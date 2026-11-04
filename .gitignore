@@ -11,3 +11,5 @@ dist/testnet-client.mjs
 
 dist/verify-result-client.mjs
 dist/crypto-hash.mjs
+
+dist/ref-deploy-client.mjs

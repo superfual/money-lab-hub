@@ -10,6 +10,9 @@ dist/testnet-client.mjs
 !.env.example
 
 dist/verify-result-client.mjs
+
 dist/crypto-hash.mjs
 
 dist/ref-deploy-client.mjs
+
+dist/mainnet-client.mjs

@@ -1,5 +1,7 @@
 # Money Lab Decision Lab
 
+> Current checkpoint (5 November 2026): native REF #49 is deployed and activated. Explicit policy checks use its verified onchain output when configured; financial inputs and gameplay remain offchain. See [current overview](../README.md) and [live evidence](mainnet-live-evidence.json). Descriptions of undeployed composition below document earlier development.
+
 ## Purpose
 
 Learn from a decision, rather than rerolling luck. After a newly recorded stage, replace one investment/optional purchase with its opposite, or omit one capital management action. Compare monthly cash plus reserves, net worth, forced sales and unpaid obligations. The original game, HUB ledger, scores, settlements and analytics remain unchanged.

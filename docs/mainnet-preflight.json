@@ -1,0 +1,17 @@
+{
+  "schema": "moneylab-mainnet-preflight.v1",
+  "checkedAt": "2026-11-04T17:58:56.632Z",
+  "chainId": 196,
+  "owner": "0x1839231f7fc0d55a3ec58736574aca13f711326d",
+  "attestor": "0xd74C5207d3fdFA2F123D0F1e4D560B53E2df605F",
+  "deployed": false,
+  "transactionSent": false,
+  "simulation": "eth_call creation returns exact compiled runtime",
+  "runtimeHash": "0x98cfd88699fa661d45eaec978b548e69334a1981c4277f7d419176b6888db547",
+  "gas": "1023849",
+  "gasPriceWei": "20000001",
+  "estimatedOKB": "0.000020476981023849",
+  "bufferedOKB": "0.000024572361228618",
+  "ownerBalanceOKB": "0.042983707439415872",
+  "sufficient": true
+}

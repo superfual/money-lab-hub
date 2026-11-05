@@ -1,3 +1,4 @@
+import {armTurn} from './turn-clock.mjs';
 // HUB is fictional device-local currency, never a transferable blockchain token.
 import {LEVELS} from './levels.mjs';
 import {questionPool} from './events.mjs';
@@ -9,7 +10,7 @@ export function restoreHub(old){if(!validHub(old))return null;const h=structured
 export const unlocked=(h,level)=>level==='easy'||level==='medium'&&h.wins.easy>0||level==='hard'&&h.wins.medium>0;
 export function beginRun(h,s,id,mode='challenge',competition=false){if(h.active||s.started||!Object.hasOwn(LEVELS,s.difficulty)||!['challenge','practice'].includes(mode)||typeof id!=='string'||!id)return false;
  if(mode==='practice'&&s.difficulty!=='easy'||mode==='challenge'&&!unlocked(h,s.difficulty))return false;
- const bond=mode==='challenge'&&!competition?LEVELS[s.difficulty].bond:0;if(h.balance<bond)return false;h.questionMemory??={};if(s.month===0){const memory=h.questionMemory[s.difficulty]||[];s.usedQuestions=questionPool(s).some(q=>!memory.includes(q.id))?[...memory]:[];}h.balance-=bond;h.active={id,level:s.difficulty,mode,bond};s.runId=id;s.labMode=mode;s.labResult=null;s.started=true;record(h,{kind:mode==='practice'?'practice':'lock',amount:-bond,level:s.difficulty});return true;}
+ const bond=mode==='challenge'&&!competition?LEVELS[s.difficulty].bond:0;if(h.balance<bond)return false;h.questionMemory??={};if(s.month===0){const memory=h.questionMemory[s.difficulty]||[];s.usedQuestions=questionPool(s).some(q=>!memory.includes(q.id))?[...memory]:[];}h.balance-=bond;h.active={id,level:s.difficulty,mode,bond};s.runId=id;s.labMode=mode;s.labResult=null;s.started=true;armTurn(s);record(h,{kind:mode==='practice'?'practice':'lock',amount:-bond,level:s.difficulty});return true;}
 export function settleRun(h,s){if(s.phase!=='finished'||!h.active||h.active.id!==s.runId||h.active.level!==s.difficulty)return null;
  const a=h.active,l=LEVELS[a.level],points=score(s).total,survived=s.month===12&&s.shortfall===0,won=a.mode==='challenge'&&survived&&points>=l.target;
  const refund=won?a.bond:0,loss=a.bond-refund,reward=won?l.rewardBase+Math.floor((points-l.target)/5)*l.rewardStep:0;

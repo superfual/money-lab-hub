@@ -12,3 +12,55 @@ test('a full online match pays Hub rewards independently and records treasury on
 const fixed=JSON.parse(t.sql.prepare('SELECT state FROM moneylab_rooms WHERE code=?').get(room.code).state);fixed.d.seed=1;t.sql.prepare('UPDATE moneylab_rooms SET state=? WHERE code=?').run(JSON.stringify(fixed),room.code);room=(await t.call(1,'act',{code:room.code,revision:room.revision,action:'manage-reserve'})).data;let steps=0;while(room.d.active&&steps++<180){const actor=room.d.turn+1;const current=(await t.call(actor,'room?code='+room.code)).data,s=current.d.players[actor-1].game;let action;if(s.phase==='ready')action=s.route?'route-0':'roll';else{const e=s.pending;if(e.type==='learn')action=e.questionId?'answer-'+e.answerOrder:'continue';else if(e.type==='opportunity')action='skip';else if(e.type==='expense'){const {SURPRISES}=await import('../dist/events.mjs');action=SURPRISES.find(x=>x.id===e.eventId).optional?'skip':'pay';}else action='continue';}const r=await t.call(actor,'act',{code:room.code,revision:current.revision,action});assert.equal(r.status,200);room=r.data;}assert.ok(room.d.done);const rows=room.d.betResult.rows;assert.ok(rows.every(x=>x.hubWon&&x.hubReward>0));assert.equal(rows.filter(x=>x.status==='won').length,1);assert.equal(room.globalTreasury,5);for(let i=1;i<=2;i++){const p=(await t.call(i,'profile')).data;assert.equal(p.hub.balance,70+rows[i-1].hubReward+rows[i-1].refund+rows[i-1].betReward);}assert.equal(t.sql.prepare('SELECT COUNT(*) AS n FROM moneylab_settlements').get().n,1);});
 test('production path uses only verified match receipts and reuses a recent server snapshot',async()=>{const t=setup();const {CIRCUIT}=await import('../dist/tapeout.mjs');const proof={...CIRCUIT,schema:'money-lab.tapeout-proof.v1',owner:CIRCUIT.author,checkedAt:new Date().toISOString(),blockNumber:42,cases:[[0,0,1],[0,1,1],[1,0,1],[1,1,0]].map(([IN0,IN1,OUT0])=>({IN0,IN1,OUT0,contract:CIRCUIT.address,circuitId:48,method:'eth_call',blockNumber:42}))};let room=await lobby(t);const startReq=new Request('https://game.test/api/online/start',{method:'POST',headers:{Authorization:'Bearer '+t.key(1),'Content-Type':'application/json'},body:JSON.stringify({code:room.code,revision:room.revision,requestId:'snapshot-start'})});const start=await handleOnline(startReq,t.env,{verify:async()=>proof});assert.equal(start.status,200);room=await start.json();const actReq=new Request('https://game.test/api/online/act',{method:'POST',headers:{Authorization:'Bearer '+t.key(1),'Content-Type':'application/json'},body:JSON.stringify({code:room.code,revision:room.revision,requestId:'snapshot-roll',action:'roll'})});const rolled=await handleOnline(actReq,t.env);assert.equal(rolled.status,200);const data=await rolled.json();assert.equal(data.d.players[0].receipt.source,'verified-match-snapshot');assert.equal(data.d.players[0].receipt.blockNumber,42);let next=(await t.call(3,'create',{name:'Next host',level:'easy',capacity:2})).data;next=(await t.call(4,'join',{code:next.code})).data;next=(await t.call(3,'ready',{code:next.code,revision:next.revision,ready:true})).data;next=(await t.call(4,'ready',{code:next.code,revision:next.revision,ready:true})).data;const cachedRequest=new Request('https://game.test/api/online/start',{method:'POST',headers:{Authorization:'Bearer '+t.key(3),'Content-Type':'application/json'},body:JSON.stringify({code:next.code,revision:next.revision,requestId:'cached-start'})});const cached=await handleOnline(cachedRequest,t.env);assert.equal(cached.status,200);assert.equal((await cached.json()).proof.blockNumber,42);});
 test('server monthly portfolio update is persistent and idempotent across duplicate route requests',async()=>{const t=setup();let room=await lobby(t);room=(await t.call(1,'start',{code:room.code,revision:room.revision})).data;room=(await t.call(1,'act',{code:room.code,revision:room.revision,action:'manage-invest'})).data;room=(await t.call(1,'act',{code:room.code,revision:room.revision,action:'roll'})).data;const revision=room.revision;const first=await t.call(1,'act',{code:room.code,revision,action:'route-0',requestId:'monthly-once'});assert.equal(first.status,200);const game=first.data.d.players[0].game;assert.equal(game.pending.monthly.portfolio.changes.length,1);const retry=await t.call(1,'act',{code:room.code,revision,action:'route-0',requestId:'monthly-once'});assert.equal(retry.status,200);assert.deepEqual(retry.data.d.players[0].game,game);const resumed=await t.call(1,'room?code='+room.code);assert.deepEqual(resumed.data.d.players[0].game,game);});
+
+// A completed room must progress as a roster, using authoritative post-settlement profiles.
+async function finishedRoom(t,count=2,level='easy',edit=()=>{}){
+ let room=await lobby(t,count);
+ room=(await t.call(1,'start',{code:room.code,revision:room.revision})).data;
+ while(room.d.active){const actor=room.d.turn+1;room=(await t.call(actor,'act',{code:room.code,revision:room.revision,action:'surrender'})).data;}
+ const stored=JSON.parse(t.sql.prepare('SELECT state FROM moneylab_rooms WHERE code=?').get(room.code).state);stored.level=level;stored.d.level=level;
+ t.sql.prepare('UPDATE moneylab_rooms SET state=? WHERE code=?').run(JSON.stringify(stored),room.code);
+ const ids=t.sql.prepare('SELECT id,hub FROM moneylab_profiles WHERE room_code=?').all(room.code);
+ for(let i=0;i<ids.length;i++){const hub=JSON.parse(ids[i].hub);hub.wins={easy:1,medium:level==='medium'?1:0,hard:0};hub.balance=120;edit(hub,i);t.sql.prepare('UPDATE moneylab_profiles SET hub=? WHERE id=?').run(JSON.stringify(hub),ids[i].id);}
+ return (await t.call(1,'room?code='+room.code)).data;
+}
+for(const count of [2,3])test(`${count}-player room advances together after settlement without a new room or extra stake`,async()=>{
+ const t=setup();let room=await finishedRoom(t,count);assert.equal(room.nextRound.level,'medium');assert.equal(room.nextRound.advance,true);
+ const code=room.code,treasury=room.globalTreasury,round=room.d.round;
+ assert.equal((await t.call(2,'next',{code,revision:room.revision})).status,403);
+ const revision=room.revision;room=(await t.call(1,'next',{code,revision,requestId:'next-once'})).data;
+ assert.equal(room.code,code);assert.equal(room.level,'medium');assert.equal(room.d.level,'medium');assert.equal(room.d.round,round);assert.equal(room.globalTreasury,treasury);assert.ok(room.members.every(m=>!m.ready));
+ const duplicate=await t.call(1,'next',{code,revision,requestId:'next-once'});assert.equal(duplicate.status,200);assert.equal(duplicate.data.level,'medium');
+ assert.equal((await t.call(1,'start',{code,revision:room.revision})).status,400);
+ for(let i=1;i<=count;i++){assert.equal((await t.call(i,'profile')).data.hub.balance,120);room=(await t.call(i,'ready',{code,revision:room.revision,ready:true})).data;}
+ room=(await t.call(1,'start',{code,revision:room.revision})).data;assert.equal(room.d.active,true);assert.equal(room.d.round,round+1);
+ for(let i=1;i<=count;i++){const own=(await t.call(i,'room?code='+code)).data;assert.equal(own.d.players[i-1].game.difficulty,'medium');assert.equal((await t.call(i,'profile')).data.hub.balance,80);}
+});
+for(const reason of ['locked','balance'])test(`one ${reason} member keeps the whole room at its current level`,async()=>{
+ const t=setup();let room=await finishedRoom(t,3,'easy',(h,i)=>{if(i===1){if(reason==='locked')h.wins.easy=0;else h.balance=39;}});
+ assert.equal(room.nextRound.advance,false);assert.equal(room.nextRound.level,'easy');assert.equal(room.nextRound.blocked.length,1);assert.equal(room.nextRound.blocked[0].locked,reason==='locked');assert.equal(room.nextRound.blocked[0].missingHub,reason==='balance'?1:0);
+ room=(await t.call(1,'next',{code:room.code,revision:room.revision})).data;assert.equal(room.level,'easy');
+});
+test('Medium progresses to Hard, Hard repeats, and next rechecks fresh profile eligibility',async()=>{
+ for(const level of ['medium','hard']){const t=setup();let room=await finishedRoom(t,2,level);room=(await t.call(1,'next',{code:room.code,revision:room.revision})).data;assert.equal(room.level,'hard');}
+ const t=setup();let room=await finishedRoom(t);assert.equal(room.nextRound.advance,true);
+ const row=t.sql.prepare('SELECT id,hub FROM moneylab_profiles WHERE room_code=? LIMIT 1').get(room.code),hub=JSON.parse(row.hub);hub.balance=39;t.sql.prepare('UPDATE moneylab_profiles SET hub=? WHERE id=?').run(JSON.stringify(hub),row.id);
+ room=(await t.call(1,'next',{code:room.code,revision:room.revision})).data;assert.equal(room.level,'easy');
+});
+
+test('any room member can expire an idle opponent; stale and concurrent clients cannot charge a month twice',async()=>{
+ const t=setup();let room=await lobby(t,3);room=(await t.call(1,'start',{code:room.code,revision:room.revision})).data;
+ assert.equal(room.d.players[0].game.turnDeadline,undefined);room=(await t.call(1,'act',{code:room.code,revision:room.revision,action:'roll'})).data;const deadline=room.d.players[0].game.turnDeadline;t.services.now=()=>deadline;
+ const other=(await t.call(2,'room?code='+room.code)).data;assert.equal(other.d.turn,1);assert.equal(other.d.players[0].game.month,1);assert.equal(other.d.players[1].game.month,0);assert.equal(other.d.players[1].game.turnDeadline,undefined);
+ const again=(await t.call(1,'room?code='+room.code)).data;assert.equal(again.revision,other.revision);assert.equal(again.d.players[0].game.month,1);
+ assert.equal((await t.call(1,'act',{code:room.code,revision:room.revision,action:'roll'})).status,409);
+ t.services.now=()=>deadline+60000;
+ const concurrent=await Promise.all([t.call(1,'room?code='+room.code),t.call(3,'room?code='+room.code)]);assert.ok(concurrent.some(r=>r.status===200));
+ const resumed=(await t.call(3,'room?code='+room.code)).data;assert.equal(resumed.d.turn,1);assert.equal(resumed.d.players[1].game.month,0);assert.equal(resumed.d.players[2].game.month,0);
+});
+test('late investment request is replaced by timeout, and offline room settlement remains single',async()=>{
+ const t=setup();let room=await lobby(t);room=(await t.call(1,'start',{code:room.code,revision:room.revision})).data;
+ room=(await t.call(1,'act',{code:room.code,revision:room.revision,action:'roll'})).data;room=(await t.call(1,'act',{code:room.code,revision:room.revision,action:'route-0'})).data;
+ t.services.now=()=>room.d.players[0].game.turnDeadline;const r=await t.call(1,'act',{code:room.code,revision:room.revision,action:'buy'});assert.equal(r.status,200);assert.equal(r.data.d.turn,1);assert.equal(r.data.d.players[0].game.positions.length,0);assert.equal(r.data.d.players[0].game.last.timedOut,true);
+ const initial=room.d.players[0].game.turnDeadline;t.services.now=()=>initial+60000*100;const all=(await t.call(2,'room?code='+room.code)).data;assert.equal(all.d.done,false);assert.equal(all.d.turn,1);assert.equal(all.d.players[1].game.turnDeadline,undefined);assert.equal(t.sql.prepare('SELECT COUNT(*) AS n FROM moneylab_settlements').get().n,0);const balances=all.d.players.map(p=>p.hub.balance);assert.deepEqual((await t.call(2,'room?code='+room.code)).data.d.players.map(p=>p.hub.balance),balances);
+});

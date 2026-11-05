@@ -1,13 +1,19 @@
 # Source provenance
 
-This repository starts from the working Money Lab prototype 23 deployed on 1 November 2026. The deployed Sites source commit is `102bbe97de1378de773897feba7836d88f952752`. This export contains the application, engine, migrations, tests and selected technical notes. Runtime databases, session material, hosting-account identity, generated bundles and browser screenshots are excluded. The hosting manifest keeps only logical database bindings; publishing a separate Site requires its own project identity.
+## Current demo-review snapshot — 5 November 2026
 
-The README is rewritten for current behavior, replacing accumulated historical release notes. The export adds the independently verified circuit creation transaction to the release manifest; that evidence-only change does not alter the deployed game.
+Application code and authored assets match deployed Sites source commit `2a81813fe5f8ddbecd0881cb5b1fd12b2807a296` (public Site version 48), plus this review's README, contribution invitation, documentation corrections and public mainnet evidence capture. No gameplay rule or contract was changed during this documentation/synchronization task.
 
-Tests recorded for the source baseline: 99 passing checks. These are automated checks, not an independent security audit or user-adoption figures. Friend playtesting is beginning. Offline balance simulations in the documents are synthetic and must not be presented as real player analytics.
+The public GitHub branch before this synchronization was `bfe2e763de212ca14516a76feb5171d51f81630f`. The new snapshot preserves its history and third-party notices. It includes the current World 1, early playable Worlds 2/3, mainnet pilot, native REF integration, responsive layout, emerald/silver theme, contrast corrections and dice-triggered timer.
 
-AI-assisted implementation supported the project. Existing TapeOut protocol components and npm dependencies remain third-party work. This snapshot does not transfer or expose player records. No open-source license for original project material has been selected yet.
+Validation: Node.js 24.22.1; 190 automated tests passed with zero failures; the production bundle build succeeded. The public REF configuration and three successful mainnet settlement receipts were re-read for `docs/mainnet-live-evidence.json`. These are founder-operated pilot observations, not user-traction statistics or an independent audit.
 
-Prototype 24 analytics update: deployed Sites source `2806e189ccca0d6faea2743082410fb3398546f0`, 1 November 2026. Adds aggregate analytics and owner-authorized chat reporting. 109 automated checks passed. No runtime player data is included.
+Runtime private keys, environment values, databases, sessions, private player journals and generated deployment bundles are excluded. `.openai/hosting.json` keeps only logical database bindings; the production Site account/project identity is not exported. Builds recreate ignored browser and Worker bundles. Public chain addresses and receipts are intentionally included.
 
-Prototype 25: Sites source `1e9ded4231966d0f00ea190945428f99e5ef15ed`, 2 November 2026 (Vietnam time). Adds an isolated testnet lab, contract source/artifact, schema and checks. Public testnet deployment remains pending the owner wallet transaction. No runtime keys or player records are exported.
+Screenshots in `docs/` are historical development/QA views; many precede the current dark theme. The current live Site is authoritative for appearance. Archived earlier README notes are in `docs/development-history.md`; current scope is in the root README and judge guide.
+
+## Attribution and collaboration
+
+Money Lab is a solo-founder, AI-assisted prototype by Fual Nguyễn (Phạm Phú An Lộc). Existing TapeOut protocol components and npm dependencies remain third-party work. See `THIRD_PARTY_NOTICES.md`. No open-source license for original project material has been selected; public availability is not an automatic license grant. Collaboration terms can be agreed with the founder.
+
+The earlier public export began with prototype 23, followed by analytics and the isolated testnet lab. Statements in older snapshots about pending deployment reflect that stage of development; the current evidence now includes activated REF #49 and founder mainnet settlement.

@@ -1,5 +1,7 @@
 # TapeOut × Money Lab: check, replay, verify
 
+> Current checkpoint (5 November 2026): deployed native REF #49 now evaluates explicit R/C/D combinations. Money Lab still computes the financial inputs offchain, and the existing binding STOP gate remains #48. The separate mainnet pilot also records server-attested outcomes. See [current overview](../README.md) and [live evidence](mainnet-live-evidence.json). Earlier statements about an undeployed REF refer to the initial design milestone.
+
 ## Shipped scope
 
 - **Before a decision:** a shared financial preflight projects the same engine action on an isolated copy and shows cash, reserves, debt and the next known mandatory obligations. It is reused in Solo, local multiplayer, online own-seat views and Testnet Lab. It never signs, changes a real game, awards HUB or records analytics.

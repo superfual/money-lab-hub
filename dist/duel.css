@@ -5,3 +5,5 @@
 .money-lesson{padding:16px;margin:16px 0;background:#edf3e6;border-left:3px solid #528369;border-radius:8px;font-size:14px;line-height:1.65}.money-lesson h3{margin:0 0 10px}.token-roadmap{margin:12px 0;line-height:1.65}.token-roadmap summary{cursor:pointer;font-weight:600}.token-roadmap p{font-size:14px}
 
 .monthly-portfolio{grid-column:1/-1;width:100%;min-width:0;padding:16px;margin:12px 0;background:#eaf1ed;border:1px solid #cbdad0;border-radius:10px;font-size:14px;line-height:1.65}.monthly-portfolio summary{cursor:pointer;font-weight:700}.monthly-asset{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 0;border-bottom:1px solid #cfddd3}.monthly-asset small{grid-column:1/-1}.monthly-portfolio p{margin:10px 0}.monthly-asset span{white-space:nowrap}@media(max-width:480px){.monthly-asset{grid-template-columns:1fr}.monthly-asset small{grid-column:auto}}
+
+.room-progression{width:100%;min-width:0;margin:20px 0;padding:18px;background:#edf3e6;border:1px solid #c5d7c4;border-radius:12px;line-height:1.7;overflow-wrap:anywhere}.room-progression h3{margin:0 0 10px}.room-progression p{margin:8px 0}.room-progression li{margin:6px 0}

@@ -3,7 +3,7 @@ import {manage,prepareMove,chooseMove,roll,resolve,netWorth,score,validSave,crea
 import {opportunity,surprise} from './events.mjs';
 import {CIRCUIT,evalData,decodeBytes} from './tapeout.mjs';
 const commands={manage,prepareMove,chooseMove,roll,resolve};
-export const decisionFingerprint=s=>JSON.stringify(Object.fromEntries(Object.entries(s).filter(([k])=>!['labTrace','labResult'].includes(k))));
+export const decisionFingerprint=s=>JSON.stringify(Object.fromEntries(Object.entries(s).filter(([k])=>!['labTrace','labResult','turnDeadline'].includes(k))));
 function replayState(trace){if(trace?.version!==1||trace.truncated||!Array.isArray(trace.actions)||trace.actions.length>256||!validSave(trace.initial))throw Error('TRACE_UNAVAILABLE');const s=structuredClone(trace.initial);delete s.labTrace;Object.defineProperty(s,'_decisionReplay',{value:true});return s;}
 function apply(s,a){if(!Object.hasOwn(commands,a?.op)||!Array.isArray(a.args)||a.args.length>3)return false;try{return commands[a.op](s,...a.args);}catch{return false;}}
 export function replay(trace,override=null){

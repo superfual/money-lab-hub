@@ -1,12 +1,12 @@
 {
   "project": "Money Lab",
-  "release": "board-v25-isolated-testnet-lab",
+  "release": "2026-11-05-demo-review",
   "network": {
     "name": "X Layer",
     "chainId": 196,
     "gasToken": "OKB"
   },
-  "status": "BOARD_INTEGRATED_TAPEOUT_MAINNET_ETH_CALL",
+  "status": "TAPEOUT_REF49_ACTIVE_AND_FOUNDER_MAINNET_SETTLED",
   "walletAddress": "0x1839231f7fc0d55a3ec58736574aca13f711326d",
   "containerAddress": null,
   "circuitId": 48,
@@ -63,8 +63,9 @@
     "note": "Content stays off-chain. Only circuit logic is read from X Layer; no container is needed."
   },
   "nextActions": [
-    "Collect user feedback on the bilingual board",
-    "Prepare campaign submission, product explanation and demo video"
+    "Record demo and prepare submission",
+    "Continue World 1 playtests and improvements",
+    "Recruit collaborators for World 1, World 2 and World 3"
   ],
   "walletAccounts": {
     "login": "EIP-4361 message / EOA signature verified server-side",
@@ -84,12 +85,27 @@
   },
   "testnetLab": {
     "chainId": 1952,
-    "status": "DEPLOYED_AND_EASY_SETTLEMENT_VERIFIED",
+    "status": "DEPLOYED_AND_ACTIVATED",
     "contractAddress": "0x38a51b2c79F689b9a65D60dd0B0Df612b42d4550",
     "token": "tHUB nontransferable test points; no monetary value",
-    "guide": "docs/testnet-lab.md",
-    "deploymentTransaction": "0x8768e2b59d3075b19ba2e3ab10239de551c1be157903e03e05c049e373c23215",
-    "firstVerifiedSettlement": "0x6b16d724a684ac8187c7557e70fede5f66b9ab6462d49104617c2efa09ba701e",
-    "evidence": "docs/testnet-evidence.json"
+    "guide": "docs/testnet-lab.md"
+  },
+  "nativeRef": {
+    "chainId": 196,
+    "circuitId": 49,
+    "tapeId": "49.2.167",
+    "operation": "R AND C AND D via four references to NAND #48",
+    "transactionHash": "0x1e42ebe28a0fce42acdd8fb2d413d53b2a0d52134e47e65638fc868ea0fad4a1",
+    "status": "ACTIVATED",
+    "financialInputs": "computed offchain by Money Lab"
+  },
+  "mainnetPilot": {
+    "chainId": 196,
+    "contractAddress": "0x945b8E9Cc8401bB18580897dba4c2055b22D045d",
+    "status": "FOUNDER_THREE_DIFFICULTIES_SETTLED",
+    "points": "free, nontransferable, nonredeemable HUB; no sale or monetary value",
+    "registration": "founder only",
+    "evidence": "docs/mainnet-live-evidence.json",
+    "gameplay": "offchain, server-attested settlement"
   }
 }

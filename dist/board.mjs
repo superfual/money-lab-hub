@@ -1,14 +1,17 @@
+import {compactDecision} from './play-layout.mjs';
+import {armTurn,turnExpired,turnClockHTML,mountTurnTicker} from './turn-clock.mjs';
+import {advanceSoloClock} from './turn-timeout.mjs';
 import {mountRiskPanel} from './risk-view.mjs';
 import {updateDecisionLab} from './decision-lab-view.mjs';
 import {mountAnalytics,trackSolo} from './analytics.mjs';
 import {accountReady,account,accountRequest,accountMessage,mountAccount} from './account.mjs';
 import {routeChoicesHTML} from './route-view.mjs';
-import {financialDashboard} from './financial-view.mjs';
+import {financialDashboard,compactFinancialDashboard} from './financial-view.mjs';
 import {mountSoundtrack} from './soundtrack.mjs';
 import {monthlyHTML,jobHTML} from './monthly-view.mjs';
 import {lessonHTML,tokenRoadmap} from './lessons.mjs';
 import {mountProgressReset} from './reset-progress.mjs';
-import {guideHTML,quickGuide} from './guide.mjs';
+import {guideHTML,quickGuide,turnTimeRule} from './guide.mjs';
 import {LEVELS,levelOf,essentialCost,marketRate,incomeAt,wealthBenchmark} from './levels.mjs';
 import {createHub,validHub,restoreHub,unlocked,beginRun,settleRun,abandonRun} from './hub.mjs';
 import {QUESTIONS,opportunity,surprise,question,CATEGORY_NAMES,MARKET_RATES,marketStory,questionPool,sideJob} from './events.mjs';
@@ -16,6 +19,7 @@ import {CIRCUIT,evaluateGate,verifyCircuit} from './tapeout.mjs';
 import {TILES,RULES,routePosition,prepareMove,chooseMove,createGame,netWorth,manage,roll,resolve,score,restoreGame,debt,sellable,monthlyPayment,recordGateProof} from './engine.mjs';
 const $=s=>document.querySelector(s), KEY='moneyLabHub.v1';
 let lang='vi',state=createGame(),hub=createHub(),selectedMode='challenge',rolling=false,storageAvailable=true;
+let serverNow=Date.now(),serverClockOffset=0;
 let serverRevision=0,serverBusy=false,serverError='',booting=true;
 let chainBusy=false,chainReady=false,chainError=false,proof=null,receipt=null;
 function runId(){return [...crypto.getRandomValues(new Uint8Array(16))].map(n=>n.toString(16).padStart(2,'0')).join('');}
@@ -46,10 +50,10 @@ function labSettlement(){const r=state.labResult;if(!r)return '';const vi=lang==
 
 function stats(){const data=[['net',netWorth(state),'netHint'],['cash',state.cash,'cashHint'],['reserve',state.reserve,'reserveHint'],['assets',state.investments,'assetsHint']];$('#stats').innerHTML=data.map(([label,value,hint])=>`<div class="stat"><label>${t(label)}</label><strong>${money(value)}</strong><small>${t(hint)}</small></div>`).join('');$('#month').textContent=`${String(state.month).padStart(2,'0')} / 12`;$('#monthProgress').innerHTML=Array.from({length:12},(_,i)=>`<i class="${i<state.month?'done':''}"></i>`).join('');}
 function board(){let tiles=TILES.map((type,i)=>`<div class="tile ${i===state.position?'active':''}" style="grid-row:${coords[i][0]};grid-column:${coords[i][1]};--tile-color:${colors[type]}" ${i===state.position?'aria-current="location"':''}><span class="tile-num">${String(i+1).padStart(2,'0')}</span><span class="game-art game-art-${type}" aria-hidden="true"></span><span class="tile-label">${t('tile')[type]}</span>${i===state.position?'<span class="pawn" aria-label="Player">F</span>':''}</div>`).join('');$('#board').innerHTML=tiles+`<div class="board-center"><span class="center-kicker">THE FINANCIAL PLAYGROUND</span><img class="board-world" src="./assets/money-town-v1.png" alt="" loading="lazy" decoding="async" width="360" height="360"><div class="center-title">MONEY LAB</div><span class="center-tagline">${t('tagline')}</span><div class="dice" aria-label="Dice ${state.dice||''}">${state.dice?['','⚀','⚁','⚂','⚃','⚄','⚅'][state.dice]:'◇'}</div></div>`;}
-function management(){const enabled=state.started&&state.phase==='ready'&&!state.route&&!rolling&&!chainBusy;const actions=[['reserve','toReserve',state.cash>=500],['release','release',state.reserve>=500],['invest','invest',state.cash>=1000&&state.gate.OUT0===1&&chainReady],['sell','sell',sellable(state)>0]];$('#management').innerHTML=`<div class="management-title">${t('manage')}</div><div class="management-actions">${actions.map(([action,label,ok])=>`<button data-manage="${action}" ${enabled&&ok?'':'disabled'}>${t(label)}</button>`).join('')}</div><div class="portfolio"><h3>${t('portfolio')}</h3>${state.positions.some(p=>p.value>0)?state.positions.filter(p=>p.value>0).map(p=>`<div class="position"><div><strong>${p.id==='legacy'?CATEGORY_NAMES[lang].legacy:opportunity(p.id)[lang][0]}</strong><small>${CATEGORY_NAMES[lang][p.kind]} · ${t(p.locked?'locked':'liquid')}</small>${p.debt>0?`<small>${t('debt')}: ${money(p.debt)} · ${money(Math.min(p.payment,p.debt))}/${lang==='vi'?'tháng':'month'}</small>`:''}</div><b>${money(p.value)}</b></div>`).join(''):`<p>${t('emptyPortfolio')}</p>`}<div class="portfolio-summary"><span>${t('debt')}<b>${money(debt(state))}</b></span><span>${t('installment')}<b>${money(monthlyPayment(state))}</b></span><span>${t('joy')}<b>${state.enjoyment}</b></span></div>${state.positions.some(p=>p.locked)?`<small>${t('noLiquid')}</small>`:''}</div>`;}
+function management(){const enabled=state.started&&state.phase==='ready'&&!state.route&&!rolling&&!chainBusy;const actions=[['reserve','toReserve',state.cash>=500],['release','release',state.reserve>=500],['invest','invest',state.cash>=1000&&state.gate.OUT0===1&&chainReady],['sell','sell',sellable(state)>0]];$('#management').innerHTML=`<div class="management-title">${t('manage')}</div><div class="management-actions">${actions.map(([action,label,ok])=>`<button data-manage="${action}" ${enabled&&ok?'':'disabled'}>${t(label)}</button>`).join('')}</div><div class="portfolio"><h3>${t('portfolio')}</h3>${state.positions.some(p=>p.value>0)?state.positions.filter(p=>p.value>0).map(p=>`<div class="position"><div><strong>${p.id==='legacy'?CATEGORY_NAMES[lang].legacy:opportunity(p.id)[lang][0]}</strong><small>${CATEGORY_NAMES[lang][p.kind]} · ${t(p.locked?'locked':'liquid')}</small>${p.debt>0?`<small>${t('debt')}: ${money(p.debt)} · ${money(Math.min(p.payment,p.debt))}/${lang==='vi'?'tháng':'month'}</small>`:''}</div><b>${money(p.value)}</b></div>`).join(''):`<p>${t('emptyPortfolio')}</p>`}<div class="portfolio-summary"><span>${t('debt')}<b>${money(debt(state))}</b></span><span>${t('installment')}<b>${money(monthlyPayment(state))}</b></span><span>${t('joy')}<b>${state.enjoyment}</b></span></div>${state.positions.some(p=>p.locked)?`<small>${t('noLiquid')}</small>`:''}</div>`;$('#management').querySelector('.portfolio')?.remove();}
 
 const button=(label,action,secondary=false,disabled=false)=>`<button class="${secondary?'secondary':'primary'}" data-action="${action}" ${disabled||chainBusy?'disabled':''}>${label}</button>`;
-function resultText(r){if(r.windfall)return `${surprise(r.eventId)[lang][0]} · +${money(r.windfall)}`;if(r.type==='opportunity')return `${r.eventId?opportunity(r.eventId)[lang][0]:t('tile').opportunity} · ${r.choice==='buy'?`${t('investNow')}: ${money(r.bought)}`:t('skipped')}`;if(r.type==='learn')return r.review?t('quizDone'):t(r.correct?'correct':'incorrect');if(r.type==='expense'&&r.eventId==='living-shortfall')return lang==='vi'?'Không đủ tiền trả sinh hoạt':'Unable to pay living costs';if(r.type==='expense'){const e=surprise(r.eventId);if(e?.optional)return `${e[lang][0]} · ${r.choice==='spend'?`${t('spent')} ${money(r.optionalCost)} · +${r.joy} ${t('joy')}`:t('declined')}`;return `${e?e[lang][0]:t('installmentsPaid')} · ${t('paid')}`;}if(r.type==='market')return `${t('marketResult')} ${signed(r.change)}`;return `${r.incomeId?sideJob(r.incomeId)[lang][0]:t('bonusResult')} · ${money(r.bonus)}`;}
+function resultText(r){if(r.timedOut)return lang==='vi'?'Hết 60 giây · Tự bỏ lượt; chi phí và biến động bắt buộc vẫn áp dụng':'60 seconds elapsed · Turn skipped; mandatory costs and market changes still apply';if(r.windfall)return `${surprise(r.eventId)[lang][0]} · +${money(r.windfall)}`;if(r.type==='opportunity')return `${r.eventId?opportunity(r.eventId)[lang][0]:t('tile').opportunity} · ${r.choice==='buy'?`${t('investNow')}: ${money(r.bought)}`:t('skipped')}`;if(r.type==='learn')return r.review?t('quizDone'):t(r.correct?'correct':'incorrect');if(r.type==='expense'&&r.eventId==='living-shortfall')return lang==='vi'?'Không đủ tiền trả sinh hoạt':'Unable to pay living costs';if(r.type==='expense'){const e=surprise(r.eventId);if(e?.optional)return `${e[lang][0]} · ${r.choice==='spend'?`${t('spent')} ${money(r.optionalCost)} · +${r.joy} ${t('joy')}`:t('declined')}`;return `${e?e[lang][0]:t('installmentsPaid')} · ${t('paid')}`;}if(r.type==='market')return `${t('marketResult')} ${signed(r.change)}`;return `${r.incomeId?sideJob(r.incomeId)[lang][0]:t('bonusResult')} · ${money(r.bonus)}`;}
 
 function decision(){
  let html='';
@@ -74,7 +78,7 @@ function circuit(){const g=receipt||state.gate;const text=lang==='vi'?{busy:'ĐA
 }
 
 function history(){$('#history').innerHTML=state.history.length?state.history.map(r=>`<div class="history-row"><span>${t('monthWord')} ${r.month}</span><strong>${t('tile')[r.type]} · ${resultText(r)}</strong><em>${money(r.netWorth)}</em>${monthlyHTML(r,lang)}${lessonHTML(r,lang)}${r.type==='learn'&&question(r.questionId)?`<small class="journal-lesson">${question(r.questionId)[lang][0]}<br>${question(r.questionId)[lang][3]}</small>`:''}${r.installments?.length?`<small class="journal-lesson">${t('installmentsPaid')}: ${money(r.installments.reduce((a,p)=>a+p.amount-p.unpaid,0))}</small>`:''}</div>`).join(''):`<div class="empty">${t('empty')}</div>`;}
-function render(){chrome();if(account){$('#saveLabel').textContent=serverError||((lang==='vi'?'Lưu theo ví · ':'Wallet save · ')+(serverBusy?(lang==='vi'?'Đang lưu…':'Saving…'):(lang==='vi'?'Đã đồng bộ':'Synced')));$('#progressReset').hidden=true;} renderHub();stats();$('#financialDashboard').innerHTML=financialDashboard(state,lang);board();management();decision();circuit();history();updateDecisionLab(state,lang);mountRiskPanel(state,lang,{source:account?'server-solo':'guest-local'});}
+function render(){chrome();if(!$('#turnTimeRule')){const note=document.createElement('p');note.id='turnTimeRule';note.className='hub-fine';$('#rules').append(note);}$('#turnTimeRule').textContent=turnTimeRule[lang];if(account){$('#saveLabel').textContent=serverError||((lang==='vi'?'Lưu theo ví · ':'Wallet save · ')+(serverBusy?(lang==='vi'?'Đang lưu…':'Saving…'):(lang==='vi'?'Đã đồng bộ':'Synced')));$('#progressReset').hidden=true;} renderHub();stats();const playing=state.started&&state.phase!=='finished',entering=playing&&!document.body.classList.contains('is-playing');document.body.classList.toggle('is-playing',playing);$('#playStatus').innerHTML=`<strong>MONEY LAB <span> / ${LEVELS[state.difficulty][lang][0]}</span></strong><span>${lang==='vi'?'Tháng':'Month'} ${state.month} / 12</span><span>${hub.balance} HUB · ${lang==='vi'?'giả lập':'fictional'}</span>`;$('#financialDashboard').innerHTML=compactFinancialDashboard(state,lang);if(entering)requestAnimationFrame(()=>$('#playWorkspace').scrollIntoView({block:'start'}));board();management();decision();$('#decision').insertAdjacentHTML('afterbegin',turnClockHTML(state,lang,account?Date.now()+serverClockOffset:Date.now()));compactDecision($('#decision'),lang,state);circuit();history();updateDecisionLab(state,lang);mountRiskPanel(state,lang,{source:account?'server-solo':'guest-local'});}
 function random(max){const u=new Uint32Array(1);crypto.getRandomValues(u);const limit=Math.floor(0x100000000/max)*max;while(u[0]>=limit)crypto.getRandomValues(u);return u[0]%max;}
 async function synchronize(candidate,full=false,nextHub=structuredClone(hub)){
  if(chainBusy)return false;chainBusy=true;chainError=false;render();
@@ -89,16 +93,18 @@ async function synchronize(candidate,full=false,nextHub=structuredClone(hub)){
 }
 async function handle(action){
  if(rolling||chainBusy||serverBusy||booting)return;
+ if(!account&&action!=='timeout'&&turnExpired(state)){await handle('timeout');return;}
  if(action==='reset'){$('#resetDialog').showModal();return;}
  if(account){await serverAction(action.startsWith('stage-')?'start':action,action.startsWith('stage-')?action.slice(6):state.difficulty);return;}
  if(action.startsWith('stage-')&&state.phase==='finished'){const candidate=createGame(action.slice(6)),nextHub=structuredClone(hub);if(!beginRun(nextHub,candidate,runId(),'challenge'))return;await synchronize(candidate,false,nextHub);$('#decision').scrollIntoView({block:'start',behavior:'smooth'});return;}
  const candidate=structuredClone(state),nextHub=structuredClone(hub);
- if(action==='start'){if(!beginRun(nextHub,candidate,runId(),selectedMode))return;}
+ if(action==='timeout'){const c=advanceSoloClock(candidate);if(!c.changed)return;}
+ else if(action==='start'){if(!beginRun(nextHub,candidate,runId(),selectedMode))return;}
  else if(action==='roll'){
   if(candidate.phase!=='ready')return;
   rolling=true;render();$('#board').classList.add('rolling');await new Promise(r=>setTimeout(r,650));
   prepareMove(candidate,random(6)+1,random(5)+1,random(0x100000000));rolling=false;
- }else if(action.startsWith('route-')){if(!chooseMove(candidate,Number(action.slice(6))))return;}else {if(action==='buy'&&!chainReady)return;if(!resolve(candidate,action))return;}
+ }else if(action.startsWith('route-')){if(!chooseMove(candidate,Number(action.slice(6))))return;}else {if(action==='buy'&&!chainReady)return;if(!resolve(candidate,action))return;armTurn(candidate);}
  await synchronize(candidate,false,nextHub);
  if(state.phase==='event')$('#decision').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'nearest'});
 }
@@ -108,16 +114,21 @@ document.addEventListener('click',e=>{
  if(proofAction==='retry'&&!chainBusy&&!rolling)synchronize(structuredClone(state),true);
  if(proofAction==='download'&&proof){const blob=new Blob([JSON.stringify({...proof,latestGameplayRead:receipt},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='money-lab-circuit-48-proof.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  const a=e.target.closest('[data-action]');if(a)handle(a.dataset.action);
- const m=e.target.closest('[data-manage]');if(m&&!rolling&&!chainBusy&&!serverBusy&&!booting){if(account){serverAction('manage-'+m.dataset.manage);return;}if(m.dataset.manage==='invest'&&!chainReady)return;const candidate=structuredClone(state);if(manage(candidate,m.dataset.manage))synchronize(candidate);}
+ const m=e.target.closest('[data-manage]');if(m&&!rolling&&!chainBusy&&!serverBusy&&!booting){if(account){serverAction('manage-'+m.dataset.manage);return;}if(turnExpired(state)){handle('timeout');return;}if(m.dataset.manage==='invest'&&!chainReady)return;const candidate=structuredClone(state);if(manage(candidate,m.dataset.manage))synchronize(candidate);}
 });
 ['vi','en'].forEach(l=>$('#'+l).onclick=()=>{lang=l;try{localStorage.setItem('moneyLabLanguage',l);}catch{}render();});
 $('#rulesButton').onclick=()=>$('#rules').showModal();$('#closeRules').onclick=()=>$('#rules').close();$('#resetButton').onclick=()=>{if(!chainBusy&&!rolling)$('#resetDialog').showModal();};$('#cancelReset').onclick=()=>$('#resetDialog').close();$('#confirmReset').onclick=()=>{if(chainBusy||rolling||serverBusy||booting)return;$('#resetDialog').close();if(account){serverAction('reset');return;}const nextHub=structuredClone(hub);abandonRun(nextHub,state);synchronize(createGame(unlocked(nextHub,state.difficulty)?state.difficulty:'easy'),false,nextHub);};
-async function loadServer(){const d=await accountRequest('solo/state');state=d.game;hub=d.hub;serverRevision=d.revision;return d;}
-async function serverAction(action,level=state.difficulty){if(serverBusy||booting)return;serverBusy=true;serverError='';chainBusy=true;render();try{const d=await accountRequest('solo/action',{action,level,revision:serverRevision,requestId:crypto.randomUUID()});state=d.game;hub=d.hub;serverRevision=d.revision;receipt=d.receipt||receipt;chainReady=true;chainError=false;}catch(e){serverError=accountMessage(e.message);try{await loadServer();}catch{}alert(serverError);}finally{serverBusy=false;chainBusy=false;render();}}
+async function loadServer(){const d=await accountRequest('solo/state');state=d.game;hub=d.hub;serverRevision=d.revision;serverClockOffset=(d.serverNow||Date.now())-Date.now();return d;}
+async function serverAction(action,level=state.difficulty){if(serverBusy||booting)return;serverBusy=true;serverError='';chainBusy=true;render();try{const d=await accountRequest('solo/action',{action,level,revision:serverRevision,requestId:crypto.randomUUID()});state=d.game;hub=d.hub;serverRevision=d.revision;serverClockOffset=(d.serverNow||Date.now())-Date.now();receipt=d.receipt||receipt;chainReady=true;chainError=false;}catch(e){serverError=accountMessage(e.message);try{await loadServer();}catch{}if(action!=='timeout')alert(serverError);}finally{serverBusy=false;chainBusy=false;render();}}
 mountAccount();mountProgressReset();render();
 accountReady.then(async()=>{try{if(account){selectedMode='challenge';await loadServer();}booting=false;await synchronize(structuredClone(state),true);}catch(e){serverError=accountMessage(e.message);booting=true;chainBusy=true;render();alert(serverError);}});
 
 
 mountSoundtrack(()=>state);
+
+
+
+if(!account&&state.started&&state.phase!=='finished'&&!Number.isFinite(state.turnDeadline)){armTurn(state);persist();}
+mountTurnTicker(async()=>{if(rolling||chainBusy||serverBusy||booting)return;await handle('timeout');});
 
 mountAnalytics();

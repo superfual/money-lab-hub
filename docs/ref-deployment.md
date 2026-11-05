@@ -1,5 +1,7 @@
 # REF mainnet deployment
 
+> Current checkpoint (5 November 2026): REF #49 / Tape ID 49.2.167 is deployed and activated on chain 196. All eight native truth-table cases are captured in [live evidence](mainnet-live-evidence.json). The owner-signature workflow below documents the deployment process; earlier future-tense text is historical.
+
 `/ref-deploy.html` is the project-owner deployment page. It does not access private keys or send automatically. Only the visitor's explicit **Open OKX Wallet to create circuit** button requests `eth_sendTransaction`; the wallet asks the owner to review and sign.
 
 1. Prepare: select wallet `0x1839231f7fc0d55a3ec58736574aca13f711326d`, switch to chain 196, simulate the exact revision-2 `tapeout(netlist,3,1)` call, read current fee/gas/balance and display an estimate with 25% gas-limit buffer. Reviews expire in two minutes; a 0.002 OKB total estimate ceiling fails closed. The wallet displays its final fee, potentially including additional fee components.

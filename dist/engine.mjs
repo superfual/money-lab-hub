@@ -1,3 +1,4 @@
+import {armTurn} from './turn-clock.mjs';
 import {RISK_POLICY} from './risk-rules.mjs';
 import {monthlyPortfolio} from './monthly.mjs';
 import {LEVELS,levelOf,essentialCost,marketRate,incomeAt,wealthBenchmark} from './levels.mjs';
@@ -57,17 +58,18 @@ function rollImpl(s,die,eventSeed=0,destination){if(s.phase!=='ready'||!s.starte
  s.phase='event';return true;
 }
 export const financialSnapshot=s=>({cash:s.cash,reserve:s.reserve,investments:s.investments,liquidAssets:sellable(s),lockedAssets:cents(s.positions.filter(p=>p.locked).reduce((n,p)=>n+p.value,0)),debt:debt(s)});
-function resolveImpl(s,choice){if(s.phase!=='event')return false;const e=s.pending,before=netWorth(s);let r={type:e.type,choice,month:s.month,variant:e.variant,eventId:e.eventId,questionId:e.questionId,marketId:e.marketId,incomeId:e.incomeId,installments:e.installments||[],monthly:e.monthly||null};
+function resolveImpl(s,choice){if(s.phase!=='event')return false;const e=s.pending,before=netWorth(s),timedOut=choice==='timeout';if(timedOut){choice=e.type==='opportunity'?'skip':e.type==='expense'?(surprise(e.eventId)?.optional?'skip':surprise(e.eventId)?.income?'decline':'pay'):e.type==='learn'?'unanswered':['salary','start'].includes(e.type)?'decline':'continue';}let r={type:e.type,choice,month:s.month,variant:e.variant,eventId:e.eventId,questionId:e.questionId,marketId:e.marketId,incomeId:e.incomeId,installments:e.installments||[],monthly:e.monthly||null};
  if(e.type==='opportunity'){const o=e.eventId?opportunity(e.eventId):OPPORTUNITIES[e.variant];r.eventId=o.id;if(choice==='buy'){if(!buy(s,o))return false;r.bought=o.cost;r.debtAdded=o.debt||0;}else if(choice!=='skip')return false;}
  else if(e.type==='expense'){const item=e.eventId?surprise(e.eventId):SURPRISES[e.variant];if(!item)return false;r.eventId=item.id;
   if(item.optional){if(choice==='spend'){if(s.cash<item.cost)return false;s.cash=cents(s.cash-item.cost);s.enjoyment+=item.joy;s.optionalSpent+=item.cost;r.optionalCost=item.cost;r.joy=item.joy;}else if(choice!=='skip')return false;}
-  else{if(choice!=='pay')return false;if(item.income){r.windfall=item.income;s.cash=cents(s.cash+item.income);}else Object.assign(r,spend(s,essentialCost(s,item.cost)));}
+  else{if(choice==='decline'&&timedOut&&item.income){r.declinedIncome=item.income;}else {if(choice!=='pay')return false;if(item.income){r.windfall=item.income;s.cash=cents(s.cash+item.income);}else Object.assign(r,spend(s,essentialCost(s,item.cost)));}}
  }else if(e.type==='market'){if(choice!=='continue')return false;r.changes=s.positions.filter(p=>p.value>0).map(p=>{const rate=marketRate(s,marketStory(e.marketId)?.rates[p.kind]??MARKET_RATES[p.kind][e.variant]),change=cents(p.value*rate);p.value=cents(p.value+change);return {id:p.id,kind:p.kind,rate,change};});totals(s);r.change=cents(netWorth(s)-before);}
  else if(e.type==='learn'){
-  if(e.questionId===null){if(choice!=='continue')return false;r.review=true;}
+  if(timedOut){r.correct=false;r.unanswered=true;s.answered++;}
+  else if(e.questionId===null){if(choice!=='continue')return false;r.review=true;}
   else{if(e.questionId){if(!['answer-0','answer-1'].includes(choice))return false;r.correct=Number(choice.slice(-1))===e.answerOrder;}else{if(!['correct','incorrect'].includes(choice))return false;r.correct=choice==='correct';r.questionId=QUESTIONS[e.variant]?.id;}s.answered++;if(r.correct)s.correctAnswers++;}
- }else if(e.type==='salary'||e.type==='start'){if(choice!=='continue')return false;r.bonus=e.type==='salary'?(e.incomeId?sideJob(e.incomeId).amount:600):300;s.cash+=r.bonus;}else return false;
- r.delta=cents(netWorth(s)-before);r.netWorth=netWorth(s);r.finances=financialSnapshot(s);s.last=r;s.history.unshift(r);s.pending=null;s.phase=s.month>=12||s.shortfall>0?'finished':'ready';return true;
+ }else if(e.type==='salary'||e.type==='start'){if(choice==='decline'&&timedOut){r.bonus=0;}else {if(choice!=='continue')return false;r.bonus=e.type==='salary'?(e.incomeId?sideJob(e.incomeId).amount:600):300;s.cash+=r.bonus;}}else return false;
+ if(timedOut)r.timedOut=true;r.delta=cents(netWorth(s)-before);r.netWorth=netWorth(s);r.finances=financialSnapshot(s);s.last=r;s.history.unshift(r);s.pending=null;s.phase=s.month>=12||s.shortfall>0?'finished':'ready';return true;
 }
 export function score(s){const wealth=Math.max(0,Math.min(40,Math.round(netWorth(s)/wealthBenchmark(s)*40))),buffer=Math.min(35,Math.round(s.reserve/(levelOf(s).living*3)*35)),liquidity=Math.max(0,15-s.forcedSales*5-(s.shortfall>0?15:0)),knowledge=s.answered?Math.round(s.correctAnswers/s.answered*10):0;return {total:wealth+buffer+liquidity+knowledge,wealth,buffer,liquidity,knowledge};}
 export function validSave(s){return !!s&&s.version===VERSION&&Object.hasOwn(LEVELS,s.difficulty||'easy')&&['ready','event','finished'].includes(s.phase)&&Number.isInteger(s.month)&&s.month>=0&&s.month<=12&&Number.isInteger(s.position)&&s.position>=0&&s.position<16&&['cash','reserve','investments','shortfall','forcedSales','correctAnswers','answered','enjoyment','optionalSpent'].every(k=>Number.isFinite(s[k])&&s[k]>=0)&&(!s.route||s.phase==='ready'&&s.started&&Array.isArray(s.route.dice)&&s.route.dice.length===2&&new Set(s.route.dice).size===2&&s.route.dice.every(n=>Number.isInteger(n)&&n>=1&&n<=6)&&Number.isSafeInteger(s.route.eventSeed)&&s.route.eventSeed>=0)&&(!s.route?.destinations||Array.isArray(s.route.destinations)&&s.route.destinations.length===2&&new Set(s.route.destinations).size===2&&s.route.destinations.every(n=>Number.isInteger(n)&&n>=0&&n<16)&&TILES[s.route.destinations[0]]===TILES[s.route.destinations[1]])&&typeof s.started==='boolean'&&Array.isArray(s.positions)&&s.positions.every(p=>typeof p.id==='string'&&Object.hasOwn(MARKET_RATES,p.kind)&&['value','debt','payment'].every(k=>Number.isFinite(p[k])&&p[k]>=0)&&typeof p.locked==='boolean')&&Math.abs(s.investments-s.positions.reduce((a,p)=>a+p.value,0))<.01&&['usedQuestions','usedOpportunities','usedSurprises'].every(k=>Array.isArray(s[k])&&new Set(s[k]).size===s[k].length)&&s.usedQuestions.every(id=>!!question(id))&&Array.isArray(s.history)&&s.history.length===s.month-(s.phase==='event'?1:0)&&s.gate&&[s.gate.IN0,s.gate.IN1,s.gate.OUT0].every(x=>x===0||x===1)&&(s.phase!=='event'||s.pending&&TILES.includes(s.pending.type)&&Number.isInteger(s.pending.variant)&&s.pending.variant>=0&&s.pending.variant<3&&(s.pending.type!=='learn'||s.pending.questionId===null||question(s.pending.questionId)&&[0,1].includes(s.pending.answerOrder))&&(s.pending.type!=='expense'||!!surprise(s.pending.eventId))&&(s.pending.type!=='opportunity'||OPPORTUNITIES.some(o=>o.id===s.pending.eventId)));}
@@ -91,10 +93,10 @@ function recorded(s,op,args,operation){
  if(s.labTrace.actions.length<256)s.labTrace.actions.push({op,args});else s.labTrace.truncated=true;return accepted;
 }
 export const manage=(s,a)=>recorded(s,'manage',[a],()=>manageImpl(s,a));
-export const prepareMove=(s,a,b,c)=>recorded(s,'prepareMove',[a,b,c],()=>prepareMoveImpl(s,a,b,c));
+export const prepareMove=(s,a,b,c,now=Date.now())=>{const ok=recorded(s,'prepareMove',[a,b,c],()=>prepareMoveImpl(s,a,b,c));if(ok)armTurn(s,now);return ok;};
 export const chooseMove=(s,i)=>recorded(s,'chooseMove',[i],()=>chooseMoveImpl(s,i));
 export const roll=(s,d,seed=0,destination)=>recorded(s,'roll',destination===undefined?[d,seed]:[d,seed,destination],()=>rollImpl(s,d,seed,destination));
-export const resolve=(s,a)=>recorded(s,'resolve',[a],()=>resolveImpl(s,a));
+export const resolve=(s,a)=>{const ok=recorded(s,'resolve',[a],()=>resolveImpl(s,a));if(ok&&!s.route&&s.phase!=='event')delete s.turnDeadline;return ok;};
 export function recordGateProof(s,r){
  const a=s.labTrace?.actions?.at(-1);
  if(!a||r?.chainId!==196||r.contract?.toLowerCase()!=='0x4f3b708af365b8f339dd35a8985ffe06c2553400'||r.circuitId!==48||r.method!=='eth_call'||!Number.isInteger(r.blockNumber)||!r.calldata||!r.rawResult)return;

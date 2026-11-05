@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import solc from 'solc';
+import {keccak256,sha256,toUtf8Bytes} from 'ethers';
+const source=fs.readFileSync('contracts/MoneyLabMainnet.sol','utf8');
+const input={language:'Solidity',sources:{'MoneyLabMainnet.sol':{content:source}},settings:{viaIR:true,optimizer:{enabled:true,runs:200},evmVersion:'paris',outputSelection:{'*':{'*':['abi','evm.bytecode.object','evm.deployedBytecode.object']}}}};
+const output=JSON.parse(solc.compile(JSON.stringify(input)));const errors=(output.errors||[]).filter(e=>e.severity==='error');if(errors.length)throw Error(errors.map(e=>e.formattedMessage).join('\n'));
+const c=output.contracts['MoneyLabMainnet.sol'].MoneyLabMainnet;
+fs.writeFileSync('dist/content/mainnet-contract.json',JSON.stringify({contractName:'MoneyLabMainnet',compiler:solc.version(),evmVersion:'paris',chainId:196,sourceSha256:sha256(toUtf8Bytes(source)),abi:c.abi,bytecode:'0x'+c.evm.bytecode.object,runtimeBytecode:'0x'+c.evm.deployedBytecode.object,runtimeHash:keccak256('0x'+c.evm.deployedBytecode.object)},null,2)+'\n');
+fs.copyFileSync('contracts/MoneyLabMainnet.sol','dist/content/MoneyLabMainnet.sol');
+console.log('Built X Layer mainnet pilot contract artifact');

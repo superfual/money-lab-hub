@@ -38,3 +38,11 @@ input,select,textarea,.estate-room-form input,.estate-room-form select,.mainnet-
 .campaign-path span.locked{background:linear-gradient(135deg,#d8dfdb,#b8c5be);color:#344e42;border-color:#91a69a}
 .campaign-path>b{color:#b4cabe}
 .duel-link{background:linear-gradient(135deg,#e5ece7,#b5c8ba);color:#153d2b;border:1px solid #94b3a0;box-shadow:inset 0 1px #fff8,0 3px 9px #0003}
+/* finance.css uses !important for route surfaces: override the full color pair. */
+.decision .route-choice,.play-columns .decision .route-choice{background:#173d30!important;border-color:#779e88!important;color:#f0f7f2!important;opacity:1}
+.decision .route-choice strong,.decision .route-choice span,.decision .route-choice b{color:#f0f7f2!important}
+.decision .route-choice .route-caution,.decision .route-choice .route-caution b{color:#ffcfad!important}
+.decision .route-choice:hover:not(:disabled){background:#235440!important;border-color:#b2d6be!important}
+.decision .route-choice:disabled{opacity:.72}
+.decision .route-choice:focus-visible{outline:3px solid #bdebd0;outline-offset:3px}
+.decision button[data-action^="answer-"],.decision button[data-action^="game-answer-"]{background:#173d30!important;color:#f0f7f2!important;border:1px solid #779e88!important}

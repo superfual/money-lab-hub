@@ -3,6 +3,7 @@ import {advanceSoloClock} from '../dist/turn-timeout.mjs';
 import {recordGateProof} from '../dist/engine.mjs';
 import {Wallet,Interface,AbiCoder,keccak256,toUtf8Bytes,getAddress} from 'ethers';
 import artifact from '../dist/content/mainnet-contract.json' with {type:'json'};
+import publicArtifact from '../dist/content/mainnet-public-contract.json' with {type:'json'};
 import {walletIdentity} from './identity.mjs';
 import {MAINNET,RESULT_TYPES,resultDomain,LEVEL_IDS} from '../dist/mainnet-shared.mjs';
 import {createGame,prepareMove,chooseMove,manage,resolve,score} from '../dist/engine.mjs';
@@ -13,7 +14,8 @@ const fail=(code,status=400)=>{throw Object.assign(Error(code),{status});};
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 const random=max=>{const n=new Uint32Array(1),limit=Math.floor(4294967296/max)*max;do{crypto.getRandomValues(n);}while(n[0]>=limit);return n[0]%max;};
 export async function chainRpc(method,params=[]){const r=await fetch(MAINNET.rpc,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(12000)});const d=await r.json();if(!r.ok||d.error||d.result===undefined)fail('MAINNET_RPC_UNAVAILABLE',503);return d.result;}
-export async function readChain(address,player,rpc=chainRpc){
+export async function readChain(address,player,rpc=chainRpc,selectedArtifact=artifact){
+ const artifact=selectedArtifact,iface=new Interface(artifact.abi);
  if(Number(await rpc('eth_chainId'))!==196)fail('WRONG_CHAIN',503);
  const latest=Number(BigInt(await rpc('eth_blockNumber'))),block='0x'+Math.max(0,latest-1).toString(16);
  if(keccak256(await rpc('eth_getCode',[address,block]))!==artifact.runtimeHash)fail('UNRECOGNIZED_CONTRACT',503);
@@ -21,7 +23,8 @@ export async function readChain(address,player,rpc=chainRpc){
  const [registered,balance,unlocked,active,attestor]=await Promise.all([call('registered',[player]),call('balanceOf',[player]),call('unlocked',[player]),call('active',[player]),call('attestor')]);
  return {registered:registered[0],balance:Number(balance[0]),unlocked:Number(unlocked[0]),active:active[0]===zero?null:{runId:active[0],level:Number(active[1]),bond:Number(active[2])},attestor:attestor[0],block:latest-1};
 }
-export async function verifyDeployment(txHash,signer,rpc=chainRpc){
+export async function verifyDeployment(txHash,signer,rpc=chainRpc,selectedArtifact=artifact){
+ const artifact=selectedArtifact;
  if(!/^0x[a-fA-F0-9]{64}$/.test(txHash))fail('INVALID_TRANSACTION');
  if(Number(await rpc('eth_chainId'))!==196)fail('WRONG_CHAIN',503);
  const [receipt,tx,latest]=await Promise.all([rpc('eth_getTransactionReceipt',[txHash]),rpc('eth_getTransactionByHash',[txHash]),rpc('eth_blockNumber')]);
@@ -35,25 +38,25 @@ export async function verifyDeployment(txHash,signer,rpc=chainRpc){
 export {stageResult as finishResult} from '../dist/result-model.mjs';
 import {stageResult as finishResult} from '../dist/result-model.mjs';
 export async function handleMainnet(request,env,services={}){try{
- if(!env.DB)fail('STORAGE_UNAVAILABLE',503);const db=env.DB,url=new URL(request.url),path=url.pathname.replace('/api/mainnet/','');
+ if(!env.DB)fail('STORAGE_UNAVAILABLE',503);const db=env.DB,url=new URL(request.url),isPublic=services.mode==='public',selectedArtifact=isPublic?publicArtifact:artifact,configTable=isPublic?'moneylab_mainnet_public_config':'moneylab_mainnet_config',path=url.pathname.replace(/^\/api\/mainnet(?:-public)?\//,'');
  const signer=env.MONEYLAB_MAINNET_ATTESTOR_KEY?new Wallet(env.MONEYLAB_MAINNET_ATTESTOR_KEY):null;
- const config=await db.prepare('SELECT address,deployment_tx,deployment_block,attestor FROM moneylab_mainnet_config WHERE id=1').first();
- if(request.method==='GET'&&path==='config')return json({network:MAINNET,contract:config,attestor:signer?.address||null,ready:!!(signer&&config&&signer.address===config.attestor),serverAttested:true});
+ const config=await db.prepare(`SELECT address,deployment_tx,deployment_block,attestor FROM ${configTable} WHERE id=1`).first();
+ if(request.method==='GET'&&path==='config')return json({registration:isPublic?'public':'owner',network:MAINNET,contract:config,attestor:signer?.address||null,ready:!!(signer&&config&&signer.address===config.attestor),serverAttested:true});
  if(!['GET','POST'].includes(request.method))fail('NOT_FOUND',404);
  if(request.method==='POST'&&request.headers.get('Origin')!==url.origin)fail('WRONG_ORIGIN',403);
  const account=await walletIdentity(request,db);if(!account)fail('WALLET_LOGIN_REQUIRED',401);
  let body={};if(request.method==='POST'){const raw=await request.text();if(raw.length>2000)fail('REQUEST_TOO_LARGE',413);body=JSON.parse(raw||'{}');}
  if(path==='activate'&&request.method==='POST'){
   if(account.address.toLowerCase()!==MAINNET.owner)fail('OWNER_REQUIRED',403);if(!signer)fail('ATTESTOR_UNAVAILABLE',503);
-  const d=await verifyDeployment(body.transactionHash,signer.address,services.rpc);
+  const d=await verifyDeployment(body.transactionHash,signer.address,services.rpc,selectedArtifact);
   if(config&&config.address!==d.address)fail('CONTRACT_ALREADY_PINNED',409);
-  await db.prepare('INSERT OR IGNORE INTO moneylab_mainnet_config (id,address,deployment_tx,deployment_block,attestor,created_at) VALUES (1,?,?,?,?,?)').bind(d.address,body.transactionHash,d.block,signer.address,Date.now()).run();return json({activated:true,address:d.address});
+  await db.prepare(`INSERT OR IGNORE INTO ${configTable} (id,address,deployment_tx,deployment_block,attestor,created_at) VALUES (1,?,?,?,?,?)`).bind(d.address,body.transactionHash,d.block,signer.address,Date.now()).run();return json({activated:true,address:d.address});
  }
- if(account.address.toLowerCase()!==MAINNET.owner)fail('PILOT_OWNER_ONLY',403);
+ if(!isPublic&&account.address.toLowerCase()!==MAINNET.owner)fail('PILOT_OWNER_ONLY',403);
  if(!config||!signer||config.attestor!==signer.address)fail('MAINNET_NOT_ACTIVATED',409);
  if(path==='evidence'&&request.method==='GET'){const id=url.searchParams.get('runId');if(!/^0x[a-fA-F0-9]{64}$/.test(id||''))fail('INVALID_RUN');const saved=await db.prepare('SELECT state FROM moneylab_mainnet_runs WHERE id=? AND account_id=? AND contract=?').bind(id,account.id,config.address).first();if(!saved)fail('NOT_FOUND',404);const game=JSON.parse(saved.state);if(game.phase!=='finished')fail('STAGE_NOT_FINISHED',409);return json({schema:'moneylab-mainnet-result.v1',chainId:196,contract:config.address,player:account.address,runId:id,serializedState:saved.state,resultHash:keccak256(toUtf8Bytes(saved.state)),expected:finishResult(game)});}
  if(path==='review'&&request.method==='GET'){const id=url.searchParams.get('runId');if(!/^0x[a-fA-F0-9]{64}$/.test(id||''))fail('INVALID_RUN');const saved=await db.prepare('SELECT state FROM moneylab_mainnet_runs WHERE id=? AND account_id=? AND contract=?').bind(id,account.id,config.address).first();if(!saved)fail('NOT_FOUND',404);const game=JSON.parse(saved.state);if(game.phase!=='finished')fail('STAGE_NOT_FINISHED',409);return json({game});}
- const chain=await (services.readChain||readChain)(config.address,account.address);
+ const chain=await (services.readChain||readChain)(config.address,account.address,services.rpc||chainRpc,selectedArtifact);
  if(chain.attestor!==signer.address)fail('ATTESTOR_MISMATCH',503);
  const row=chain.active?await db.prepare('SELECT state,revision,last_request FROM moneylab_mainnet_runs WHERE id=? AND account_id=? AND contract=?').bind(chain.active.runId,account.id,config.address).first():null;
  let view=row?{game:JSON.parse(row.state),revision:row.revision}:{game:null,revision:0};
@@ -67,7 +70,7 @@ export async function handleMainnet(request,env,services={}){try{
  if(request.method!=='POST')fail('NOT_FOUND',404);
  if(path==='erase'){
   if(body.confirm!=='ERASE'||chain.active)fail('FINISH_CHAIN_RUN_FIRST',409);
-  await db.prepare('DELETE FROM moneylab_mainnet_runs WHERE account_id=?').bind(account.id).run();return json({erased:true,onchainUnchanged:true});
+  await db.prepare('DELETE FROM moneylab_mainnet_runs WHERE account_id=? AND contract=?').bind(account.id,config.address).run();return json({erased:true,onchainUnchanged:true});
  }
  if(!chain.active)fail('NO_ACTIVE_CHAIN_RUN',409);
  if(path==='receipt'){

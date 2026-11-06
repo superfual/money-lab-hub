@@ -6,6 +6,12 @@ A bilingual Vietnamese/English financial-education game by **Fual Nguyễn (Ph�
 
 [Play Money Lab](https://fual-money-lab-x.phamphuanloc.chatgpt.site) · [Judge review guide](docs/judge-review.md) · [Mainnet pilot](https://fual-money-lab-x.phamphuanloc.chatgpt.site/mainnet.html) · [Contribute](CONTRIBUTING.md)
 
+## Public mainnet registration — awaiting owner activation
+
+A separate public pilot has been prepared at [Public Mainnet](https://fual-money-lab-x.phamphuanloc.chatgpt.site/mainnet-play.html). **It is not activated merely by publishing the website.** The owner must deploy and verify `MoneyLabPublicMainnet` before other wallets can register for 80 free, nontransferable HUB. Players pay real OKB gas only; there is no HUB purchase, deposit or token approval. [Activation and onboarding guide](docs/public-mainnet.md).
+
+The existing founder ledger and all three settlement receipts remain unchanged at `/mainnet.html`. Public and founder balances/configuration/journals are separate. Wallet registrations must not be described as unique users or successful settlements.
+
 ## A message from the founder
 
 > I did not have enough time to find teammates to develop this product together before the submission. I am still actively looking for them: people who share the vision and want to help refine World 1 and build World 2 and World 3 with me. Money Lab is a long-term project, and I want to keep learning, testing with players, and improving it with a team.

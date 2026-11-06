@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-06T08:25:48.534Z",
+  "chainId": 196,
+  "owner": "0x1839231f7fc0d55a3ec58736574aca13f711326d",
+  "attestor": "0xd74C5207d3fdFA2F123D0F1e4D560B53E2df605F",
+  "contractName": "MoneyLabPublicMainnet",
+  "runtimeHash": "0xa6fec027efbaa3e4d2e53a55d5c5fe4c53c7d1c97866b6a9d1ed856dd4229e6f",
+  "creationDataHash": "0x1ad2f0892af3fb6ae3f0b16b18e11bf700c1c1ce1d5d7ca060048b1bff3e035e",
+  "estimatedGas": "1007731",
+  "gasPriceWei": "20000001",
+  "valueOKB": "0",
+  "estimatedFeeOKB": "0.000020154621007731",
+  "bufferedFeeOKB": "0.000024185541209277",
+  "ownerHasBufferedGas": true,
+  "underReviewCap": true,
+  "transactionSent": false,
+  "status": "Prepared only. The owner must review fresh fees and sign deployment, then activate; public registration is not yet live."
+}

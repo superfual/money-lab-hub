@@ -152,3 +152,8 @@ A bilingual counterfactual learning panel now compares one changed financial dec
 ## TapeOut risk engine
 
 Money Lab now provides shared pre-decision projections, a versioned risk policy, a downloadable **undeployed** four-REF circuit design and a testnet result evidence checker. Try `/risk-lab.html`, replay at `/decision-lab.html`, and verify a downloaded result at `/verify-result.html`. USD gameplay finances and HUB points remain separate. R/C/D checks are educational offchain composition from actual mainnet NAND reads; the existing STOP gate still binds investment actions. The ledger verifies server-attested outcomes, not trustless gameplay. [Scope, sources and trust boundaries](docs/tapeout-risk-engine.md).
+
+
+## Public mainnet onboarding (6 November 2026)
+
+Prepared a separate public-registration contract and `/mainnet-play.html`, preserving the immutable founder ledger. Added per-player zero-value wallet reviews, a separately pinned public configuration and runtime hash, scoped journal deletion and tests for cross-player settlement/journal isolation. Public onboarding is not active until the owner personally deploys and verifies the new contract; no transaction was sent by this code change.

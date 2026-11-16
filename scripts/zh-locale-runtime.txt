@@ -1,0 +1,19 @@
+const keys=Object.keys(dictionary).sort((a,b)=>b.length-a.length);
+const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const matcher=new RegExp(keys.map(k=>'(?<![A-Za-z])'+escape(k)+'(?![A-Za-z])').join('|'),'g');
+export function translateText(value){
+ const source=String(value);if(!/[A-Za-z]/.test(source))return source;
+ const trimmed=source.trim();if(dictionary[trimmed])return source.replace(trimmed,dictionary[trimmed]);
+ const money='(\\$[\\d,]+)';
+ const templates=[
+ [new RegExp('Start with '+money+': '+money+' cash and '+money+' reserve\\. (Easy|Medium|Hard) has base salary '+money+' and '+money+' monthly living costs\\.','g'),(_,a,b,c,l,d,e)=>`初始 ${a}：现金 ${b}，储备金 ${c}。${dictionary[l]}难度的基本工资为 ${d}，每月生活费 ${e}。`],
+ [new RegExp('Base salary '+money+', living costs '+money+'/month before installments\\.','g'),(_,a,b)=>`基本工资 ${a}，每月生活费 ${b}（不含分期）。`],
+ [new RegExp('(Easy|Medium|Hard) starts with '+money+': '+money+' cash and '+money+' reserve\\. Aim to complete 12 months while meeting required payments\\.','g'),(_,l,a,b,c)=>`${dictionary[l]}难度初始 ${a}：现金 ${b}，储备金 ${c}。目标是完成12个月并支付必要义务。`],
+ [/One turn is one month: base salary (\$[\d,]+), living costs (\$[\d,]+)\./g,(_,a,b)=>`每回合为一个月：基本工资 ${a}，生活费 ${b}。`],
+ [/Abandoning forfeits the (\d+) simulated HUB committed to this run\./g,(_,a)=>`放弃本关将损失已锁定的 ${a} 模拟 HUB。`]
+ ];let text=source;for(const [pattern,replacement]of templates)text=text.replace(pattern,replacement);
+ return text.replace(matcher,part=>dictionary[part])
+ .replace(/\b(\d+)s\b/g,'$1秒')
+ .replace(/\bWORLD\s+(\d+)\b/g,'世界 $1')
+ .replace(/\bWorld\s+(\d+)\b/g,'世界 $1');
+}

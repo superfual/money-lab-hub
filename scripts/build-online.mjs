@@ -1,3 +1,4 @@
+import './build-zh-locale.mjs';
 // Bundle standard wallet-signature verification with Worker APIs; preserve authored static assets.
 import fs from 'node:fs';import path from 'node:path';import {build} from 'esbuild';
 await build({entryPoints:['client/hash.mjs'],outfile:'dist/crypto-hash.mjs',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true});

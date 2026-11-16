@@ -1,6 +1,6 @@
 // Optional first-party counters. No address, name, email, URL query, IP or device fingerprint is sent.
 const KEY='moneyLabAnalyticsBrowser.v1',OFF='moneyLabAnalyticsOff.v1',TEST='moneyLabAnalyticsTest.v1';
-const tr=(vi,en)=>document.documentElement.lang==='en'?en:vi;
+const tr=(vi,en)=>document.documentElement.lang!=='vi'?en:vi;
 export function analyticsHeaders(){try{return localStorage.getItem(TEST)==='1'?{'X-MoneyLab-Analytics-Test':'1'}:{};}catch{return {};}}
 function browserKey(){try{let k=localStorage.getItem(KEY);if(!/^[a-f0-9]{64}$/.test(k||'')){k=[...crypto.getRandomValues(new Uint8Array(32))].map(v=>v.toString(16).padStart(2,'0')).join('');localStorage.setItem(KEY,k);}return k;}catch{return null;}}
 export function track(metric,mode,level='all',eventId=crypto.randomUUID(),value=1){try{if(localStorage.getItem(OFF)==='1')return;const browser=browserKey();if(!browser)return;fetch('/api/analytics/event',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',...analyticsHeaders()},body:JSON.stringify({browser,eventId,metric,mode,level,value}),keepalive:true}).catch(()=>{});}catch{}}

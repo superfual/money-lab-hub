@@ -2,9 +2,11 @@
 
 **Practice managing money before risking real money.**
 
-A bilingual Vietnamese/English financial-education game by **Fual Nguyễn (Phạm Phú An Lộc)**. Navigate 12 simulated months, manage cash and reserves, invest, meet obligations, and explore how different decisions change liquidity. Money Lab integrates TapeOut circuits on X Layer and includes separate founder and public mainnet result-settlement pilots.
+A Vietnamese/English/Simplified-Chinese financial-education game by **Fual Nguyễn (Phạm Phú An Lộc)**. Navigate 12 simulated months, manage cash and reserves, invest, meet obligations, and explore how different decisions change liquidity. Money Lab integrates TapeOut circuits on X Layer and includes separate founder and public mainnet result-settlement pilots.
 
 [Play Money Lab](https://fual-money-lab-x.phamphuanloc.chatgpt.site) · [Judge review guide](docs/judge-review.md) · [Mainnet pilot](https://fual-money-lab-x.phamphuanloc.chatgpt.site/mainnet.html) · [Contribute](CONTRIBUTING.md)
+
+[简体中文介绍](README.zh-CN.md) · [中文体验](https://fual-money-lab-x.phamphuanloc.chatgpt.site/?lang=zh)
 
 ## Public mainnet registration — activated
 
@@ -74,7 +76,7 @@ npm run dev
 
 The preview prints its local URL. Server APIs require the included SQLite/D1 adapter and SQL migrations; merely serving `dist/` as static files supports only part of the product. Blockchain-attestation secrets and production user data are not included. Local EVM tests use generated test signers and never spend mainnet funds. The configured browser-wallet flows always require the owner to review/sign; no deployment is performed by the build or test commands.
 
-The 16 November 2026 review passed **201 tests, 0 failures**, including accounting, replay, circuit/REF checks, identity/origin/revision guards, timers, multiplayer and local-EVM contract settlement. Tests do not substitute for an independent audit. Live external RPC availability may affect interactive play.
+The 17 November 2026 localization review passed **206 tests, 0 failures**, including accounting, replay, circuit/REF checks, identity/origin/revision guards, timers, multiplayer and local-EVM contract settlement. Tests do not substitute for an independent audit. Live external RPC availability may affect interactive play.
 
 ## Repository map
 

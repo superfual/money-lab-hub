@@ -1,4 +1,4 @@
-# Judge review guide — 5 November 2026
+# Judge review guide — 16 November 2026
 
 ## A short product tour
 
@@ -8,7 +8,7 @@
 4. Inspect the TapeOut/Risk Lab section. The binding STOP gate uses #48; explicit REF policy checks use deployed #49 when activated. Financial comparison inputs are computed by Money Lab.
 5. At stage end, inspect the score and use Replay Decision to change one choice under recorded event seeds. This does not pay a second HUB reward.
 6. For cross-device Duet/Group, use the online room link and separate players/devices. These balances and stakes are simulated, server-managed points.
-7. Inspect [mainnet pilot evidence](mainnet-live-evidence.json) and the three transaction links in the README. Public visitors can review evidence; the current ledger only permits founder registration. Do not assume judges need real OKB to try the guest game.
+7. Inspect [mainnet pilot evidence](mainnet-live-evidence.json) and the three transaction links in the README. The founder ledger remains restricted; the separate public ledger at `/mainnet-play.html` is active for other wallets. Do not assume judges need real OKB to try the guest game.
 
 ## Evidence and limitations
 
@@ -16,7 +16,7 @@
 | --- | --- | --- |
 | Real TapeOut integration | `dist/tapeout.mjs`, `dist/ref-reader.mjs`, `dist/risk-circuit.mjs`, `docs/ref-deployment.md`, live REF configuration | Circuit checks supplied bits; Money Lab supplies simulated financial inputs |
 | Native REF #49 | Mint transaction and all eight cases in `mainnet-live-evidence.json` | Mainnet RPC observations, not a security audit |
-| Actual mainnet settlement | `contracts/MoneyLabMainnet.sol`, three successful `RunSettled` transaction receipts | Founder-only pilot, offchain game and server-signed results |
+| Actual mainnet settlement | `contracts/MoneyLabMainnet.sol`, three successful `RunSettled` transaction receipts | Founder receipts; separate public ledger; offchain game and server-signed results |
 | Replay | `dist/decision-lab.mjs`, its tests and Replay UI | Historical recorded seeds; no fabricated future paths or extra reward |
 | Completeness | World 1 Solo, online rooms, timers, lessons and result handling | External RPC can be unavailable; not a fully decentralized service |
 | Growth potential | `CONTRIBUTING.md`, investment-world guide | Worlds 2/3 are early playable prototypes; token sale/revenue are not claimed |
@@ -31,3 +31,7 @@
 - 2:45–3:00: founder invitation to teammates and the long-term product vision.
 
 Use the current public site for gameplay and public explorer links for evidence. Do not show seed phrases, wallet passwords, runtime secrets or private player journals. Video recording and submission are performed by the founder; this repository update does not submit the competition form.
+
+## Latest readiness review
+
+See [submission-readiness.md](submission-readiness.md) for current checks and outstanding acceptance work. Do not infer complete mobile or multi-device validation from automated tests alone.

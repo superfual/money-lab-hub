@@ -2,13 +2,13 @@
 
 **Practice managing money before risking real money.**
 
-A bilingual Vietnamese/English financial-education game by **Fual Nguyễn (Phạm Phú An Lộc)**. Navigate 12 simulated months, manage cash and reserves, invest, meet obligations, and explore how different decisions change liquidity. Money Lab integrates TapeOut circuits on X Layer and includes a founder-operated mainnet result-settlement pilot.
+A bilingual Vietnamese/English financial-education game by **Fual Nguyễn (Phạm Phú An Lộc)**. Navigate 12 simulated months, manage cash and reserves, invest, meet obligations, and explore how different decisions change liquidity. Money Lab integrates TapeOut circuits on X Layer and includes separate founder and public mainnet result-settlement pilots.
 
 [Play Money Lab](https://fual-money-lab-x.phamphuanloc.chatgpt.site) · [Judge review guide](docs/judge-review.md) · [Mainnet pilot](https://fual-money-lab-x.phamphuanloc.chatgpt.site/mainnet.html) · [Contribute](CONTRIBUTING.md)
 
-## Public mainnet registration — awaiting owner activation
+## Public mainnet registration — activated
 
-A separate public pilot has been prepared at [Public Mainnet](https://fual-money-lab-x.phamphuanloc.chatgpt.site/mainnet-play.html). **It is not activated merely by publishing the website.** The owner must deploy and verify `MoneyLabPublicMainnet` before other wallets can register for 80 free, nontransferable HUB. Players pay real OKB gas only; there is no HUB purchase, deposit or token approval. [Activation and onboarding guide](docs/public-mainnet.md).
+A separate public pilot is active at [Public Mainnet](https://fual-money-lab-x.phamphuanloc.chatgpt.site/mainnet-play.html). The live configuration and successful deployment receipt were rechecked on 16 November 2026. The public ledger is `0x28Ead12d270Da38971522DF1C88390f8dbc7ac32`; wallets can register for 80 free, nontransferable HUB. Players pay real OKB gas only; there is no HUB purchase, deposit or token approval. [Activation and onboarding guide](docs/public-mainnet.md).
 
 The existing founder ledger and all three settlement receipts remain unchanged at `/mainnet.html`. Public and founder balances/configuration/journals are separate. Wallet registrations must not be described as unique users or successful settlements.
 
@@ -47,6 +47,8 @@ This is a solo-founder, AI-assisted prototype. It is not represented as the work
 
 See [captured live configuration and receipts](docs/mainnet-live-evidence.json), [REF design/deployment](docs/ref-deployment.md), [risk-engine boundaries](docs/tapeout-risk-engine.md) and [mainnet pilot guide](docs/mainnet-pilot.md). Captured RPC observations are inspectable evidence, not cryptographic storage proofs; re-read the chain to verify current state.
 
+Latest read-only checks: [review report](docs/submission-readiness.md) and [machine-readable RPC evidence](docs/submission-readiness-evidence.json). The independent [decision receipt verifier](https://fual-money-lab-x.phamphuanloc.chatgpt.site/decision-verifier.html) supports replaying pinned rule checks; a receipt hash does not establish the truth of financial inputs. The built-in Coach uses deterministic product guidance, without an LLM API.
+
 ## Founder mainnet demonstration
 
 Ledger: [`0x945b8E9Cc8401bB18580897dba4c2055b22D045d`](https://www.oklink.com/xlayer/address/0x945b8E9Cc8401bB18580897dba4c2055b22D045d).
@@ -57,7 +59,7 @@ Ledger: [`0x945b8E9Cc8401bB18580897dba4c2055b22D045d`](https://www.oklink.com/xl
 | Medium | 80/100 | Won | 34 | [Transaction](https://www.oklink.com/xlayer/tx/0xe48794f5aa9a81d765f684bc1edf4b09d7f21348fe5ac5f8e0de1fc10faf4b4c) |
 | Hard | 19/100 | Lost; 80-point bond forfeited | 0 | [Transaction](https://www.oklink.com/xlayer/tx/0x12ec7c319fabc4187368999c8edfb416effdde4bb62d3fc01cddc7fb38879eed) |
 
-These are founder-operated pilot runs, **not three independent users or evidence of commercial traction**. Their settlement arithmetic was 80 + 14 + 34 − 80 = 48 HUB at the captured checkpoint. Outcomes remain public even if server journals are deleted. Mainnet access is restricted to the founder wallet in the current contract.
+These are founder-operated pilot runs, **not three independent users or evidence of commercial traction**. Their settlement arithmetic was 80 + 14 + 34 − 80 = 48 HUB at the captured checkpoint. Outcomes remain public even if server journals are deleted. This founder contract remains restricted; the separate public contract supports other wallets.
 
 ## Run, test and build
 
@@ -72,7 +74,7 @@ npm run dev
 
 The preview prints its local URL. Server APIs require the included SQLite/D1 adapter and SQL migrations; merely serving `dist/` as static files supports only part of the product. Blockchain-attestation secrets and production user data are not included. Local EVM tests use generated test signers and never spend mainnet funds. The configured browser-wallet flows always require the owner to review/sign; no deployment is performed by the build or test commands.
 
-The 5 November 2026 review passed **190 tests, 0 failures**, including accounting, replay, circuit/REF checks, identity/origin/revision guards, timers, multiplayer and local-EVM contract settlement. Tests do not substitute for an independent audit. Live external RPC availability may affect interactive play.
+The 16 November 2026 review passed **201 tests, 0 failures**, including accounting, replay, circuit/REF checks, identity/origin/revision guards, timers, multiplayer and local-EVM contract settlement. Tests do not substitute for an independent audit. Live external RPC availability may affect interactive play.
 
 ## Repository map
 

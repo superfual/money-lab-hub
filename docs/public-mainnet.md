@@ -1,8 +1,10 @@
-# Public mainnet onboarding — prepared, not yet activated
+# Public mainnet onboarding — activated
 
 The founder-only ledger cannot enable registration for another wallet: its `register` function requires the deployer and it is not upgradeable. The public pilot therefore has a **separate contract and configuration**. Preparing or publishing this code does not deploy a contract or open onchain registration.
 
-## Owner activation
+Verified 16 November 2026: public config is ready, deployment receipt succeeded and runtime code is present at `0x28Ead12d270Da38971522DF1C88390f8dbc7ac32`. See [current evidence](submission-readiness-evidence.json). The steps below document the completed activation; do not deploy again.
+
+## Owner activation (completed)
 
 1. Open `/mainnet-play.html`, sign in with the original owner wallet on X Layer chain 196.
 2. Select **Prepare deployment**. Inspect the zero-OKB value, contract source, current gas estimate and buffered budget. Nothing is sent at this step.
@@ -22,6 +24,6 @@ Gameplay is server-authoritative and server-attested, not trustless game executi
 - Both ledgers retain independent runtime-bytecode pins and EIP-712 contract domains.
 - Public requests require the signed-in wallet; journals/evidence are scoped to that account and ledger. Erasing journals is scoped to the selected ledger and does not erase blockchain records.
 - Each wallet can register once; multiple wallets are possible. Registered wallet counts must not be presented as unique people or proof of traction.
-- Public ledger stays inactive until the owner deploys and verifies it. The old founder contract is never presented as publicly registrable.
+- Public ledger activation is complete. The old founder contract is never presented as publicly registrable.
 
 Tests: `node --test tests/mainnet-*.test.mjs` covers independent player registration/settlement, replay and cross-player rejection, private journal isolation, exact activation/runtime pins, zero-value wallet transaction review and preservation of the founder pilot.

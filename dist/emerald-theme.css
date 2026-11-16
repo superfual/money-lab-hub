@@ -63,3 +63,18 @@ input,select,textarea,.estate-room-form input,.estate-room-form select,.mainnet-
 .finance-dashboard.warning .finance-alert{background:#3f4830;border-color:#b8ae79;color:#f1edce}
 .finance-dashboard.danger .finance-alert{background:#52362c;border-color:#d99f83;color:#ffe0ce}
 .finance-dashboard .finance-alert strong,.finance-dashboard .finance-alert span{color:inherit}
+
+/* Readable surface pairs: light risk/proof cards use deep emerald ink. */
+.risk-choice,.result-proof,.room-progression{background:#f2f5ed;color:#143d2c;border-color:#a8bfae}
+.risk-choice :is(h3,p,small,strong,b,dt,dd,span,code),.result-proof :is(h2,h3,p,small,strong,b,span,code,pre,summary),.room-progression :is(h3,p,li,strong,b,span){color:#143d2c}
+.risk-choice.risk-caution,.risk-choice.risk-blocked{background:#fff0df;color:#633716;border-color:#b88a62}
+.risk-choice:is(.risk-caution,.risk-blocked) :is(h3,p,small,strong,b,dt,dd,span){color:#633716}
+.risk-choice dl>div{border-color:#afc3b4}
+.result-proof a,.room-progression a{color:#145a3d;text-decoration:underline}
+/* Dark reading surfaces: keep labels and explanatory copy near white. */
+.decision .eyebrow,.play-columns .decision .eyebrow{color:#f1f7f3}
+.decision p,.account-panel p,.account-dialog p,.player-panel p,.decision-lab>p,.risk-preflight>p,.lab-fine,.lab-proof,.route-disclosure{color:#edf4ef}
+.decision-lab .lab-fine,.decision-lab .lab-proof{color:#edf4ef}
+.online-wallet small,.room-heading small,.room-heading span,.compact-heading>span,.compact-liquidity small,.holding-meta,.holding-change,.holdings-title span,.holdings-empty,.holdings-panel>small,.compact-flow details,.monthly-asset small{color:#edf4ef}
+.decision-lab .risk-choice p,.decision-lab .risk-choice .lab-fine{color:#143d2c}
+.decision-lab .risk-choice:is(.risk-caution,.risk-blocked) p{color:#633716}

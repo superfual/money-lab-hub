@@ -46,3 +46,7 @@ input,select,textarea,.estate-room-form input,.estate-room-form select,.mainnet-
 .decision .route-choice:disabled{opacity:.72}
 .decision .route-choice:focus-visible{outline:3px solid #bdebd0;outline-offset:3px}
 .decision button[data-action^="answer-"],.decision button[data-action^="game-answer-"]{background:#173d30!important;color:#f0f7f2!important;border:1px solid #779e88!important}
+/* A playback failure must remain visible on small screens. */
+.soundtrack-dock{flex-wrap:wrap;max-width:calc(100vw - 24px)}
+.soundtrack-dock .music-status:empty{display:none}
+.soundtrack-dock .music-status{flex-basis:100%;max-width:310px;font-size:11px;line-height:1.4;color:#e5eee6;padding:0 10px 6px}

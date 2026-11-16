@@ -76,7 +76,9 @@ npm run dev
 
 The preview prints its local URL. Server APIs require the included SQLite/D1 adapter and SQL migrations; merely serving `dist/` as static files supports only part of the product. Blockchain-attestation secrets and production user data are not included. Local EVM tests use generated test signers and never spend mainnet funds. The configured browser-wallet flows always require the owner to review/sign; no deployment is performed by the build or test commands.
 
-The 17 November 2026 localization review passed **206 tests, 0 failures**, including accounting, replay, circuit/REF checks, identity/origin/revision guards, timers, multiplayer and local-EVM contract settlement. Tests do not substitute for an independent audit. Live external RPC availability may affect interactive play.
+The 17 November 2026 mobile-audio review passed **213 tests, 0 failures**, including accounting, replay, circuit/REF checks, identity/origin/revision guards, timers, multiplayer and local-EVM contract settlement. Tests do not substitute for an independent audit. Live external RPC availability may affect interactive play.
+
+Music now uses original local MP3 loops with explicit tap-to-play and interruption/retry handling. [Mobile audio review](docs/mobile-audio.md).
 
 ## Repository map
 

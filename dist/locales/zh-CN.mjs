@@ -1264,7 +1264,12 @@ export const dictionary={
   "skip": "放弃",
   "buy": "买入",
   "sell": "出售",
-  "spend": "支出"
+  "spend": "支出",
+  "Starting music…": "正在开启音乐…",
+  "▶ Resume music": "▶ 继续播放音乐",
+  "Could not play. Tap again; check media volume or open in Safari/Chrome.": "无法播放。请再次点击，检查媒体音量，或用 Safari／Chrome 打开。",
+  "Audio paused. Tap to resume.": "音频已暂停，点击继续。",
+  "Use your phone volume buttons.": "请使用手机音量键调节。"
 };
 const keys=Object.keys(dictionary).sort((a,b)=>b.length-a.length);
 const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');

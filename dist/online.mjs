@@ -1,4 +1,4 @@
-import {compactDecision} from './play-layout.mjs';
+import {compactDecision,revealDecision} from './play-layout.mjs';
 import {turnClockHTML,mountTurnTicker} from './turn-clock.mjs';
 import {progressionHTML} from './room-progression.mjs';
 import {mountRiskPanel} from './risk-view.mjs';
@@ -47,7 +47,7 @@ async function act(a){if(busy)return;if(a==='invite'){const invite=new URL('./on
  else if(a==='ready')body.ready=!room.members[room.seat].ready;
  else if(a.startsWith('act:')){path='act';body.action=a.slice(4);}
  else if(a==='surrender'){path='act';body.action='surrender';}
- busy=true;error='';render();try{const data=await request(path,body);if(data.left){room=null;lastRevision=-1;profile=await request('profile');}else{room=data;lastRevision=data.revision;}}catch(e){error=e.message;if(room){try{room=await request('room?code='+room.code);lastRevision=room.revision;}catch{}}}finally{busy=false;render();}}
+ busy=true;error='';render();try{const data=await request(path,body);if(data.left){room=null;lastRevision=-1;profile=await request('profile');}else{room=data;lastRevision=data.revision;}}catch(e){error=e.message;if(room){try{room=await request('room?code='+room.code);lastRevision=room.revision;}catch{}}}finally{busy=false;render();if(!error&&(a==='start'||a.startsWith('act:')&&!a.startsWith('act:manage-')))revealDecision('.match-results, .play-columns > .decision');}}
 $('#onlineApp').addEventListener('click',e=>{const a=e.target.closest('[data-a]')?.dataset.a;if(a)act(a);});for(const l of ['vi','en'])$('#'+l).onclick=()=>{lang=l;localStorage.setItem('moneyLabLanguage',l);render();};mountAccount();render();accountReady.then(refresh);setInterval(()=>{if(!busy&&room)refresh();},2000);
 
 mountSoundtrack(()=>room?.d?.players?.[room.seat]?.game);

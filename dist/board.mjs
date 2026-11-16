@@ -1,4 +1,4 @@
-import {compactDecision} from './play-layout.mjs';
+import {compactDecision,revealDecision} from './play-layout.mjs';
 import {armTurn,turnExpired,turnClockHTML,mountTurnTicker} from './turn-clock.mjs';
 import {advanceSoloClock} from './turn-timeout.mjs';
 import {mountRiskPanel} from './risk-view.mjs';
@@ -105,8 +105,8 @@ async function handle(action){
   rolling=true;render();$('#board').classList.add('rolling');await new Promise(r=>setTimeout(r,650));
   prepareMove(candidate,random(6)+1,random(5)+1,random(0x100000000));rolling=false;
  }else if(action.startsWith('route-')){if(!chooseMove(candidate,Number(action.slice(6))))return;}else {if(action==='buy'&&!chainReady)return;if(!resolve(candidate,action))return;armTurn(candidate);}
- await synchronize(candidate,false,nextHub);
- if(state.phase==='event')$('#decision').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'nearest'});
+ const applied=await synchronize(candidate,false,nextHub);
+ if(applied&&action!=='timeout')revealDecision('#decision');
 }
 document.addEventListener('click',e=>{
  const level=e.target.closest('[data-level]')?.dataset.level;const mode=e.target.closest('[data-mode]')?.dataset.mode;if(!state.started&&!chainBusy&&!rolling&&!serverBusy&&!booting){if(level&&Object.hasOwn(LEVELS,level)&&unlocked(hub,level)){state=createGame(level);persist();render();return;}if(mode==='challenge'||!account&&mode==='practice'&&state.difficulty==='easy'){selectedMode=mode;persist();render();return;}}
@@ -119,7 +119,7 @@ document.addEventListener('click',e=>{
 ['vi','en'].forEach(l=>$('#'+l).onclick=()=>{lang=l;try{localStorage.setItem('moneyLabLanguage',l);}catch{}render();});
 $('#rulesButton').onclick=()=>$('#rules').showModal();$('#closeRules').onclick=()=>$('#rules').close();$('#resetButton').onclick=()=>{if(!chainBusy&&!rolling)$('#resetDialog').showModal();};$('#cancelReset').onclick=()=>$('#resetDialog').close();$('#confirmReset').onclick=()=>{if(chainBusy||rolling||serverBusy||booting)return;$('#resetDialog').close();if(account){serverAction('reset');return;}const nextHub=structuredClone(hub);abandonRun(nextHub,state);synchronize(createGame(unlocked(nextHub,state.difficulty)?state.difficulty:'easy'),false,nextHub);};
 async function loadServer(){const d=await accountRequest('solo/state');state=d.game;hub=d.hub;serverRevision=d.revision;serverClockOffset=(d.serverNow||Date.now())-Date.now();return d;}
-async function serverAction(action,level=state.difficulty){if(serverBusy||booting)return;serverBusy=true;serverError='';chainBusy=true;render();try{const d=await accountRequest('solo/action',{action,level,revision:serverRevision,requestId:crypto.randomUUID()});state=d.game;hub=d.hub;serverRevision=d.revision;serverClockOffset=(d.serverNow||Date.now())-Date.now();receipt=d.receipt||receipt;chainReady=true;chainError=false;}catch(e){serverError=accountMessage(e.message);try{await loadServer();}catch{}if(action!=='timeout')alert(serverError);}finally{serverBusy=false;chainBusy=false;render();}}
+async function serverAction(action,level=state.difficulty){if(serverBusy||booting)return;serverBusy=true;serverError='';chainBusy=true;render();try{const d=await accountRequest('solo/action',{action,level,revision:serverRevision,requestId:crypto.randomUUID()});state=d.game;hub=d.hub;serverRevision=d.revision;serverClockOffset=(d.serverNow||Date.now())-Date.now();receipt=d.receipt||receipt;chainReady=true;chainError=false;}catch(e){serverError=accountMessage(e.message);try{await loadServer();}catch{}if(action!=='timeout')alert(serverError);}finally{serverBusy=false;chainBusy=false;render();if(!serverError&&action!=='timeout'&&!action.startsWith('manage-')&&action!=='reset')revealDecision('#decision');}}
 mountAccount();mountProgressReset();render();
 accountReady.then(async()=>{try{if(account){selectedMode='challenge';await loadServer();}booting=false;await synchronize(structuredClone(state),true);}catch(e){serverError=accountMessage(e.message);booting=true;chainBusy=true;render();alert(serverError);}});
 

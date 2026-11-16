@@ -50,3 +50,16 @@ input,select,textarea,.estate-room-form input,.estate-room-form select,.mainnet-
 .soundtrack-dock{flex-wrap:wrap;max-width:calc(100vw - 24px)}
 .soundtrack-dock .music-status:empty{display:none}
 .soundtrack-dock .music-status{flex-basis:100%;max-width:310px;font-size:11px;line-height:1.4;color:#e5eee6;padding:0 10px 6px}
+/* Online forms had more-specific white surfaces than the shared dark theme. */
+.online-lobby input,.online-lobby select,.duet-names input{background:#102e25;color:#f0f7f2;-webkit-text-fill-color:#f0f7f2;caret-color:#bcebd2;border-color:#789c8a;color-scheme:dark;opacity:1}
+.online-lobby input::placeholder,.duet-names input::placeholder{color:#bfd0c7;-webkit-text-fill-color:#bfd0c7;opacity:1}
+.online-lobby select option{background:#102e25;color:#f0f7f2}
+.online-lobby input:focus-visible,.online-lobby select:focus-visible,.duet-names input:focus-visible{outline:3px solid #bcebd2;outline-offset:2px}
+.online-lobby input:-webkit-autofill,.duet-names input:-webkit-autofill{-webkit-text-fill-color:#f0f7f2;box-shadow:0 0 0 1000px #102e25 inset;caret-color:#bcebd2}
+.online-wallet,.room-heading{background:linear-gradient(145deg,#1b382d,#10291f);color:#edf5ef;border-color:#718d7e}
+.online-wallet small,.room-heading small,.room-heading span{color:#bfd0c7}
+.online-wallet b,.room-heading strong{color:#f0f7f2}
+.online-board>div{color:#183d2b}.online-board .active{color:#183d2b}
+.finance-dashboard.warning .finance-alert{background:#3f4830;border-color:#b8ae79;color:#f1edce}
+.finance-dashboard.danger .finance-alert{background:#52362c;border-color:#d99f83;color:#ffe0ce}
+.finance-dashboard .finance-alert strong,.finance-dashboard .finance-alert span{color:inherit}

@@ -18,7 +18,7 @@ The Duet export includes NAND #48 and REF #49 receipts at block 76,092,411 and t
 
 ## Decision-panel scrolling correction
 
-After a successful user roll or choice, the next rendered decision panel resets its internal scroll and is brought to the top of the viewport. The heading receives focus without another scroll. Local handoff dialogs take priority. Periodic room polling and automatic timeouts do not request this scrolling.
+After a successful user roll or choice, the next rendered decision panel resets its internal scroll and is brought into view. When the next-roll button is available after completing a month, the button itself is centered and focused, rather than merely revealing the top of a potentially long result panel. The heading receives focus without another scroll. Local handoff dialogs take priority. Ordinary room polling and automatic timeouts do not request this scrolling. A new transition back to the local player's online turn reveals that player's decision once.
 
 Implemented in guest Solo, wallet Solo, local Duet/Group, online rooms, and the shared founder/public-mainnet client. No wallet transaction was sent during this review.
 
@@ -30,3 +30,5 @@ Validation: 213 existing automated tests passed, zero failed; build and JavaScri
 - Complete independent-verifier round-trip with a suitable full-trace export.
 - Check wallet multiplayer, cross-round progression, reconnect and timeout acceptance cases separately.
 - Supply the final demo video URL and complete the competition form; this review does not submit a form.
+
+Follow-up next-month regression: browser checks completed an opportunity by passing on desktop and applied a market event at 390 px width. In both cases the next-roll button was focused and fully visible near the viewport center without manual scrolling. All 213 automated tests still pass.

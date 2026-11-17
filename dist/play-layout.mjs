@@ -7,6 +7,10 @@ export function revealDecision(selector='#decision, .play-columns > .decision, .
  requestAnimationFrame(()=>{
   const root=document.querySelector('.handoff .decision')||document.querySelector(selector);if(!root)return;
   root.scrollTop=0;
+  // A completed month can leave a long result above the next-roll control.
+  // Target the control itself, including the scrollable desktop panel.
+  const roll=root.querySelector('button:is([data-action="roll"],[data-action="game-roll"],[data-a="roll"],[data-a="act:roll"]):not(:disabled)');
+  if(roll){roll.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});roll.focus({preventScroll:true});return;}
   root.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'});
   const heading=root.querySelector(':scope > h2');
   if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});}

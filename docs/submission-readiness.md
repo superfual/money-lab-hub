@@ -1,10 +1,10 @@
-# Submission readiness — 16 November 2026
+# Submission readiness — 17 November 2026
 
 This is a factual checkpoint, not a security audit or completed submission.
 
 ## Verified in this review
 
-- Automated suite: 201 tests passed, zero failed (Node 24).
+- Automated suite rerun on 17 November: 213 tests passed, zero failed (Node 24).
 - HTTP 200: home, online rooms, founder mainnet, public mainnet, testnet and independent decision verifier.
 - Fresh X Layer RPC reads at block `0x488e781`: all four NAND #48 cases and all eight REF #49 cases. Full responses are in [evidence](submission-readiness-evidence.json).
 - All three historical founder settlement receipts still succeed and include the settlement event.
@@ -13,11 +13,15 @@ This is a factual checkpoint, not a security audit or completed submission.
 - Live explicit TapeOut check: native REF #49 result appeared, with R/C/D and the four NAND composition steps at block 76081220. No signature or transaction was sent.
 - Corrected outdated Decision Lab wording that said no new circuit had been deployed.
 
+## Follow-up acceptance — 17 November
+
+See [manual acceptance and scrolling review](acceptance-20261117.md) for the desktop/mobile guest exports, user-reported two-device Duet result, and the decision-panel scrolling correction. These observations have different verification scopes; they do not prove entire gameplay onchain.
+
 ## Remaining release acceptance
 
-- Fresh full 12-month browser run, result screen, Replay and exported receipt round-trip through the independent verifier.
-- Real phone checks in VI/EN, especially light choice-card contrast, scrolling, board size and end-of-stage layout.
-- Two distinct signed-in players/devices: shared progression when all qualify, a nonqualifying member, reconnect and timeout behavior. Automated coverage exists; it is not equivalent to this live test.
+- Guest 12-month and Replay summary exports have been reviewed for desktop and phone. A full trace and independent-verifier round-trip still need separate evidence.
+- User supplied a real-phone guest export and confirmed audio. The new scrolling behavior has been checked in a 390 px browser viewport; physical-phone confirmation of this change remains pending.
+- User reported a completed two-device guest Duet and supplied its result screenshot. Distinct wallet sign-ins, progression across rounds, reconnect and timeout behavior still need separate manual confirmation. Automated coverage is not equivalent to these live tests.
 - Founder supplies final video URL and checks the competition form. No form was submitted during this review.
 
 ## Submission package

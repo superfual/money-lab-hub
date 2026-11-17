@@ -1,5 +1,5 @@
 import {validatePilotTransaction} from './mainnet-wallet.mjs';
-import {compactDecision} from '../dist/play-layout.mjs';
+import {compactDecision,revealDecision} from '../dist/play-layout.mjs';
 import {renderTurnClock,mountTurnTicker,createTimeoutHandler} from '../dist/turn-clock.mjs';
 import {verifyResultEnvelope} from './mainnet-result-evidence.mjs';
 import {downloadJSON} from '../dist/risk-view.mjs';
@@ -101,7 +101,7 @@ async function perform(action){
  }
  await prepare(action);
 }
-document.addEventListener('click',async e=>{const a=e.target.closest('[data-action]')?.dataset.action;if(!a||busy)return;busy=true;document.querySelectorAll('[data-action]').forEach(b=>b.disabled=true);status(tr('Đang xử lý…','Working…'));try{await perform(a);if(a!=='confirm')status(tr('Đã cập nhật.','Updated.'));}catch(error){status(describe(error));}finally{busy=false;render();if(prepared)$('#review').querySelectorAll('button').forEach(b=>b.disabled=false);if(checkedEvidence)$('#resultEvidence').querySelectorAll('button').forEach(b=>b.disabled=false);}});
+document.addEventListener('click',async e=>{const a=e.target.closest('[data-action]')?.dataset.action;if(!a||busy)return;busy=true;document.querySelectorAll('[data-action]').forEach(b=>b.disabled=true);status(tr('Đang xử lý…','Working…'));let applied=false;try{await perform(a);applied=true;if(a!=='confirm')status(tr('Đã cập nhật.','Updated.'));}catch(error){status(describe(error));}finally{busy=false;render();if(prepared)$('#review').querySelectorAll('button').forEach(b=>b.disabled=false);if(checkedEvidence)$('#resultEvidence').querySelectorAll('button').forEach(b=>b.disabled=false);if(applied&&a.startsWith('game-')&&!a.startsWith('game-manage-')&&a!=='game-timeout')revealDecision('#decision');}});
 status(tr('Sẵn sàng · bản kết nối 26.1','Ready · connection build 26.1'));
 $('#language').onclick=()=>{localStorage.setItem('moneyLabLanguage',vi?'en':'vi');location.reload();};mountAccount();await accountReady;try{await refresh();}catch(e){status(describe(e));}
 
